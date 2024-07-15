@@ -12,9 +12,9 @@ export class WhatsController {
     return this.whatsService.create(createWhatDto);
   }
 
-  @Get()
-  findAll() {
-    return this.whatsService.findAll();
+  @Get('operation/availability/:number/:status/:date')
+  availability(@Param('number') number: string, @Param('status') status: string, @Param('date') date: string) {
+    return this.whatsService.availability(number, status, date);
   }
 
   @Get(':id')

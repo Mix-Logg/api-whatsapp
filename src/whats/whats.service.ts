@@ -11,7 +11,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
+        // executablePath: '/usr/bin/chromium-browser',
         headless: true,         //true means browser wont be dispalyed, false means chromium opens with web whatsapp
         args: [
           '--no-sandbox',
@@ -47,14 +47,32 @@ export class WhatsService {
     return 'This action adds a new what';
   }
 
-  findAll() {
-    const newNumber  = '5511952168280@c.us'; // número do destinatário
-    const message = 'Olá, esta é uma mensagem de teste!';
+  availability(number:string, status:string, date:string){
+    const newNumber  = `${number}@c.us`; // número do destinatário
+    let   message;
+    switch (status) {
+      case 'hasCharge':
+      message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você está confirmado para carregar amanhã 📦*\n*📆 ${date}*\n*🕓 5:00am*\n*📍  CD - Fast Shop Rod Anhanguera Km 37,5. CEP: 07789-100. Bairro: Jordanesia*\n\n\n*❗Atenção: Quando chegar no CD entre no app e confirme que você chegou no local*`;
+      break;
+      case 'noCharge':
+        message = message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você infelizmente não foi selecionado 🥺*\n\n*❌Sem carga para amanhã* \n\n\n*📌 Mas não desanime pois a partir das 8:00am até as 14:00pm você pode marcar novamente a disponibiliade pelo app*`;
+        break;
+    
+      default:
+        return
+    }
     
     this.client.sendMessage(newNumber, message).then(response => {
-      console.log('Message sent successfully', response);
+      return{
+        status : 200,
+        message:'Message sent successfully'
+      }
     }).catch(err => {
       console.error('Failed to send message', err);
+      return{
+        status:500,
+        message: 'Server error internal'
+      }
     });
   }
 
