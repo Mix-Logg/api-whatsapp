@@ -48,6 +48,7 @@ export class WhatsService {
   }
 
   availability(number:string, status:string, date:string){
+    date = date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$3/$2/$1");
     const newNumber  = `${number}@c.us`; // número do destinatário
     let   message;
     switch (status) {
