@@ -48,7 +48,14 @@ export class WhatsService {
   }
 
   findAll() {
-    return `This action returns all whats`;
+    const newNumber  = '5511952168280@c.us'; // número do destinatário
+    const message = 'Olá, esta é uma mensagem de teste!';
+    
+    this.client.sendMessage(newNumber, message).then(response => {
+      console.log('Message sent successfully', response);
+    }).catch(err => {
+      console.error('Failed to send message', err);
+    });
   }
 
   findOne(id: number) {
