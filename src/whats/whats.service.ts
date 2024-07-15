@@ -47,35 +47,40 @@ export class WhatsService {
     return 'This action adds a new what';
   }
 
-  availability(number:string, status:string, date:string){
+  async availability(number: string, status: string, date: string) {
     date = date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$3/$2/$1");
-    const newNumber  = `${number}@c.us`; // número do destinatário
-    let   message;
+    const newNumber = `${number}@c.us`; // número do destinatário
+    let message;
+    
     switch (status) {
       case 'hasCharge':
-      message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você está confirmado para carregar amanhã 📦*\n*📆 ${date}*\n*🕓 5:00am*\n*📍  CD - Fast Shop Rod Anhanguera Km 37,5. CEP: 07789-100. Bairro: Jordanesia*\n\n\n*❗Atenção: Quando chegar no CD entre no app e confirme que você chegou no local*`;
-      break;
-      case 'noCharge':
-        message = message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você infelizmente não foi selecionado 🥺*\n\n*❌Sem carga para amanhã* \n\n\n*📌 Mas não desanime pois a partir das 8:00am até as 14:00pm você pode marcar novamente a disponibiliade pelo app*`;
+        message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você está confirmado para carregar amanhã 📦*\n*📆 ${date}*\n*🕓 5:00am*\n*📍  CD - Fast Shop Rod Anhanguera Km 37,5. CEP: 07789-100. Bairro: Jordanesia*\n\n\n*❗Atenção: Quando chegar no CD entre no app e confirme que você chegou no local*`;
         break;
-    
+      case 'noCharge':
+        message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você infelizmente não foi selecionado 🥺*\n\n*❌Sem carga para amanhã* \n\n\n*📌 Mas não desanime pois a partir das 8:00am até as 14:00pm você pode marcar novamente a disponibiliade pelo app*`;
+        break;
       default:
-        return
+        return {
+          status: 400,
+          message: 'Invalid status'
+        };
     }
-    
-    this.client.sendMessage(newNumber, message).then(response => {
-      return{
-        status : 200,
-        message:'Message sent successfully'
-      }
-    }).catch(err => {
+  
+    try {
+      await this.client.sendMessage(newNumber, message);
+      return {
+        status: 200,
+        message: 'Message sent successfully'
+      };
+    } catch (err) {
       console.error('Failed to send message', err);
-      return{
-        status:500,
-        message: 'Server error internal'
-      }
-    });
+      return {
+        status: 500,
+        message: 'Server internal error'
+      };
+    }
   }
+  
 
   findOne(id: number) {
     return `This action returns a #${id} what`;
