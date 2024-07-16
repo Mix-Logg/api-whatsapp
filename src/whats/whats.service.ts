@@ -12,8 +12,7 @@ export class WhatsService {
       authStrategy: new LocalAuth(),
       puppeteer: {
         executablePath: '/usr/bin/chromium-browser',
-        timeout: 60000 ,
-        headless: false,         //true means browser wont be dispalyed, false means chromium opens with web whatsapp
+        headless: true,         //true means browser wont be dispalyed, false means chromium opens with web whatsapp
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
