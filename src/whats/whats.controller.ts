@@ -17,6 +17,11 @@ export class WhatsController {
     return this.whatsService.availability(number, status, date);
   }
 
+  @Get('operation/availability/:number/:photo')
+  avalidPhotoReproved(@Param('number') number: string, @Param('photo') photo: string) {
+    return this.whatsService.avalidPhotoReproved(number, photo);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.whatsService.findOne(+id);

@@ -54,10 +54,10 @@ export class WhatsService {
     
     switch (status) {
       case 'hasCharge':
-        message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você está confirmado para carregar amanhã 📦*\n*📆 ${date}*\n*🕓 5:00am*\n*📍  CD - Fast Shop Rod Anhanguera Km 37,5. CEP: 07789-100. Bairro: Jordanesia*\n\n\n*❗Atenção: Quando chegar no CD entre no app e confirme que você chegou no local*`;
+        message = `*Olá, aqui é a Mix (assistente virtual 🙋🏾‍♀️)*\n\n*Passando pra te avisar que você está confirmado para carregar amanhã 📦*\n*📆 ${date}*\n*🕓 5:00am*\n*📍  CD - Fast Shop Rod Anhanguera Km 37,5. CEP: 07789-100. Bairro: Jordanesia*\n\n\n*❗Atenção: Quando chegar no CD entre no app e confirme que você chegou no local*`;
         break;
       case 'noCharge':
-        message = `*Olá, aqui é a Mix (assistente virtual da Mix 👋🏽👩🏽)*\n\n*Passando pra te avisar que você infelizmente não foi selecionado 🥺*\n\n*❌Sem carga para amanhã* \n\n\n*📌 Mas não desanime pois a partir das 8:00am até as 14:00pm você pode marcar novamente a disponibiliade pelo app*`;
+        message = `*Olá, aqui é a Mix (assistente virtual 🙋🏾‍♀️)*\n\n*Passando pra te avisar que você infelizmente não foi selecionado 🙍🏾‍♀️*\n\n*❌Sem carga para amanhã* \n\n\n*📌 Mas não desanime pois a partir das 8:00am até as 14:00pm você pode marcar novamente a disponibiliade pelo app*`;
         break;
       default:
         return {
@@ -80,6 +80,26 @@ export class WhatsService {
       };
     }
   }
+
+  async avalidPhotoReproved(number: string, photo: string) {
+    const newNumber = `${number}@c.us`; // número do destinatário
+    let message = `*Olá, aqui é a Mix (Assistente Virtual 🙋🏾‍♀️)*\n\n Passando para te avisar que sua foto *${photo}* foi reprovada 🤦🏾‍♀️ \n\n Mas não fique triste, abra o seu app Mix Driver e envie uma nova imagem para análise 💁🏾‍♀️`;
+  
+    try {
+      await this.client.sendMessage(newNumber, message);
+      return {
+        status: 200,
+        message: 'Message sent successfully'
+      };
+    } catch (err) {
+      console.error('Failed to send message', err);
+      return {
+        status: 500,
+        message: 'Server internal error'
+      };
+    }
+  }
+  
   
 
   findOne(id: number) {
