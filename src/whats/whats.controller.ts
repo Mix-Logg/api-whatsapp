@@ -17,9 +17,14 @@ export class WhatsController {
     return this.whatsService.availability(number, status, date);
   }
 
-  @Get('operation/availability/:number/:photo')
+  @Get('appDriver/avalidPhoto/:number/:photo')
   avalidPhotoReproved(@Param('number') number: string, @Param('photo') photo: string) {
     return this.whatsService.avalidPhotoReproved(number, photo);
+  }
+
+  @Get('appDriver/forgotPassword/:number/:code')
+  forgotPassword(@Param('number') number: string, @Param('code') code: string) {
+    return this.whatsService.forgotPassword(number, code);
   }
 
   @Get(':id')

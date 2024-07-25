@@ -100,7 +100,25 @@ export class WhatsService {
     }
   }
   
-  
+  async forgotPassword(number: string, code: string){
+    const newNumber = `${number}@c.us`; // número do destinatário
+    let message = `*Olá, aqui é a Mix (Assistente Virtual 🙋🏾‍♀️)*\n\n
+      Aqui está seu código de verificação: \n
+      *Código: ${code.split('').join(' ')} 👩🏾‍💻 * cleck cleck* *\n\nuse em menos de 5 minutos, senão...\n *EU VOU EXPLODIR* 🧙🏾‍♀️💥 \n(brincadeira! O código vai expirar mesmo 🙆🏾‍♀️)`;
+    try {
+      await this.client.sendMessage(newNumber, message);
+      return {
+        status: 200,
+        message: 'Message sent successfully'
+      };
+    } catch (err) {
+      console.error('Failed to send message', err);
+      return {
+        status: 500,
+        message: 'Server internal error'
+      };
+    }
+  }
 
   findOne(id: number) {
     return `This action returns a #${id} what`;
