@@ -11,7 +11,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
+        // executablePath: '/usr/bin/chromium-browser',
         headless: true,         //true means browser wont be dispalyed, false means chromium opens with web whatsapp
         args: [
           '--no-sandbox',
@@ -25,10 +25,10 @@ export class WhatsService {
           '--disable-gpu'
         ],
       },
-      webVersionCache: {
-      type: 'remote',
-      remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2410.1.html',
-      }
+      // webVersionCache: {
+      // type: 'remote',
+      // remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2410.1.html',
+      // }
     });
 
     this.client.on('qr', qr => {
