@@ -13,6 +13,7 @@ lerna-debug.log*
 
 # Whatsapp
 .wwebjs_auth
+.wwebjs_auth/
 
 # OS
 .DS_Store
