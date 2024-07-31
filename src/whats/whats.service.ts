@@ -11,8 +11,8 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/usr/bin/chromium-browser',
-        headless: true,         //true means browser wont be dispalyed, false means chromium opens with web whatsapp
+        executablePath: '/usr/bin/chromium-browser',
+        headless: true,  
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -24,6 +24,7 @@ export class WhatsService {
           '--single-process',
           '--disable-gpu'
         ],
+        timeout: 0,
       },
       webVersionCache: {
       type: 'remote',
