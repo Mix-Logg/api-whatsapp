@@ -92,6 +92,7 @@ export class WhatsService {
       };
     } catch (err) {
       console.error('Failed to send message', err);
+      process.exit(1)
       return {
         status: 500,
         message: 'Server internal error'
@@ -112,6 +113,7 @@ export class WhatsService {
       };
     } catch (err) {
       console.error('Failed to send message', err);
+      process.exit(1)
       return {
         status: 500,
         message: 'Server internal error'
