@@ -25,10 +25,6 @@ export class WhatsService {
           '--disable-gpu'
         ],
         timeout: 0,
-      },
-      webVersionCache: {
-      type: 'remote',
-      remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2410.1.html',
       }
     });
 
