@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { CreateWhatDto } from './dto/create-what.dto';
 import { UpdateWhatDto } from './dto/update-what.dto';
-import { Client, LocalAuth} from 'whatsapp-web.js'
+import { Label ,Client, LocalAuth, Message } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
+type ConversationStep = 'INITIAL_CONTACT' | 'GET_NAME' | 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'COMPLETE' | 'CONFIRMATION';
 @Injectable()
 export class WhatsService {
-
   private client: Client;
+
   onModuleInit() {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
+        // executablePath: '/usr/bin/chromium-browser',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -37,12 +38,14 @@ export class WhatsService {
       console.log('Cliente está pronto!');
     });
 
+    this.client.on('message', async (message: Message) => {
+      await this.handleIncomingMessage(message);
+    });
+
     this.client.initialize();
   }
 
-  create(createWhatDto: CreateWhatDto) {
-    return 'This action adds a new what';
-  }
+  // ################ ACTIVE ###################### \\
 
   async availability(number: string, status: string, date: string) {
     date = date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$3/$2/$1");
@@ -121,15 +124,137 @@ export class WhatsService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} what`;
-  }
+  // ################ PASSIVE ###################### \\
 
-  update(id: number, updateWhatDto: UpdateWhatDto) {
-    return `This action updates a #${id} what`;
-  }
+  private conversationState: { [chatId: string]: ConversationStep } = {};
+  private userData: { [chatId: string]: { name?: string; vehicle?: string; region?: string; measure?: string; } } = {};
+  
+  private async getConversationState(chatId: string): Promise<ConversationStep> {
+    return this.conversationState[chatId] || 'INITIAL_CONTACT';
+  };
 
-  remove(id: number) {
-    return `This action removes a #${id} what`;
-  }
+  private async updateConversationState(chatId: string, step: ConversationStep) {
+    this.conversationState[chatId] = step;
+  };
+
+  private async handleIncomingMessage(message: Message) {
+    const chatId = message.from;
+    const contact = await message.getContact();
+    if (contact.isMyContact) {
+      return;
+    }
+    const conversationStep = await this.getConversationState(chatId);
+    switch (conversationStep) {
+      case 'INITIAL_CONTACT':
+        await this.sendFirstContactResponse(chatId);
+        await this.updateConversationState(chatId, 'GET_NAME');
+        break;
+
+      case 'GET_NAME':
+        await this.collectName(chatId, message.body);
+        await this.updateConversationState(chatId, 'GET_VEHICLE_INFO');
+        break;
+
+      case 'GET_VEHICLE_INFO':
+        await this.collectVehicleInfo(chatId, message.body);
+        await this.updateConversationState(chatId, 'GET_REGION');
+        break;
+
+      case 'GET_REGION':
+        await this.collectRegionInfo(chatId, message.body);
+        await this.updateConversationState(chatId, 'GET_MEASURE');
+        break;
+
+      case 'GET_MEASURE':
+        await this.collectMeasureInfo(chatId, message.body);
+        await this.updateConversationState(chatId, 'CONFIRMATION');
+        break;
+
+      case 'CONFIRMATION':
+        if (message.body.toLowerCase() === 'sim') {
+          await this.finalizeProcess(chatId);
+        } else if (message.body.toLowerCase() === 'não' || message.body.toLowerCase() === 'nao' ) {       
+          await this.resetProcess(chatId);
+        } else {
+          await this.client.sendMessage(chatId, "Resposta não reconhecida. Por favor, responda com 'Sim' ou 'Não'.");
+        }
+        break;
+    }
+  };
+
+  private async finalizeProcess(chatId: string) {
+    const userData = this.userData[chatId];
+    // chatId.label(chatId, [{hexColor:'',id:'',name:''}])
+    await this.client.sendMessage(chatId, "Obrigado! Seus dados foram salvos com sucesso.");
+    await this.updateConversationState(chatId, 'COMPLETE');
+    delete this.userData[chatId];
+  };
+  
+  private async resetProcess(chatId: string) {
+    await this.client.sendMessage(chatId, "Vamos começar de novo. Qual é o seu nome?");
+    await this.updateConversationState(chatId, 'GET_NAME');
+    // Opcional: Limpar os dados do usuário se necessário
+    delete this.userData[chatId];
+  };
+
+  private async sendFirstContactResponse(chatId: string){
+    try {
+      const presentation = `💁🏾‍♀️ \n*Olá, somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixservlog.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
+      console.log(chatId)
+      await this.client.sendMessage(chatId, presentation);
+      await this.client.sendMessage(chatId, "👋 Qual é o seu nome?");
+    } catch (err) {
+      console.error('Erro ao enviar a mensagem:', err);
+      process.exit(1)
+    }
+  };
+
+  private async collectName(chatId: string, name: string) {
+    // Armazena a informação do nome
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].name = name;
+    await this.client.sendMessage(chatId, "🚚 Qual é o seu veículo?");
+  };
+
+  private async collectVehicleInfo(chatId: string, vehicleInfo: string) {
+    // Armazena a informação do veículo
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].vehicle = vehicleInfo;
+    await this.client.sendMessage(chatId, "📍 Qual é a sua região?");
+  };
+
+  private async collectRegionInfo(chatId: string, regionInfo: string) {
+    const userData = this.userData[chatId];
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].region = regionInfo;
+    await this.client.sendMessage(chatId, `📐 Quais as medidas interna do ${userData.vehicle} (Alt x Larg x Comp)?`);
+  };
+
+  private async collectMeasureInfo(chatId: string, measureInfo: string) {
+    // Armazena a informação do veículo
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].measure = measureInfo;
+    await this.confirmData(chatId); 
+  };
+
+  private async confirmData(chatId: string) {
+    const userData = this.userData[chatId];
+    if (userData) {
+      const confirmationMessage = `📋📦 As informações está correta? \n\n 😁 *Nome:* ${userData.name}\n🚚 *Veículo:* ${userData.vehicle}\n📍 *Região:* ${userData.region}\n📐 *Medida:* ${userData.measure} \n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
+      await this.client.sendMessage(chatId, confirmationMessage);
+      await this.updateConversationState(chatId, 'CONFIRMATION');
+    } else {
+      await this.client.sendMessage(chatId, "Não consegui coletar todas as informações. Por favor, tente novamente.");
+      // Opcional: Retornar ao início ou terminar o atendimento
+    }
+  };
+  
 }

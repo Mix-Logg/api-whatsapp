@@ -7,11 +7,6 @@ import { UpdateWhatDto } from './dto/update-what.dto';
 export class WhatsController {
   constructor(private readonly whatsService: WhatsService) {}
 
-  @Post()
-  create(@Body() createWhatDto: CreateWhatDto) {
-    return this.whatsService.create(createWhatDto);
-  }
-
   @Get('operation/availability/:number/:status/:date')
   availability(@Param('number') number: string, @Param('status') status: string, @Param('date') date: string) {
     return this.whatsService.availability(number, status, date);
@@ -27,18 +22,4 @@ export class WhatsController {
     return this.whatsService.forgotPassword(number, code);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.whatsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWhatDto: UpdateWhatDto) {
-    return this.whatsService.update(+id, updateWhatDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.whatsService.remove(+id);
-  }
 }
