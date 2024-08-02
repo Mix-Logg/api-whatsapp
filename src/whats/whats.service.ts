@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateWhatDto } from './dto/create-what.dto';
 import { UpdateWhatDto } from './dto/update-what.dto';
-import { Label ,Client, LocalAuth, Message } from 'whatsapp-web.js'
+import { Buttons,Label ,Client, LocalAuth, Message, List } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
 type ConversationStep = 'INITIAL_CONTACT' | 'GET_NAME' | 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'COMPLETE' | 'CONFIRMATION';
 @Injectable()
@@ -39,6 +39,9 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
+      if(message.id.remote != '5511932291233@c.us'){
+        return
+      }
       await this.handleIncomingMessage(message);
     });
 
@@ -128,6 +131,19 @@ export class WhatsService {
 
   private conversationState: { [chatId: string]: ConversationStep } = {};
   private userData: { [chatId: string]: { name?: string; vehicle?: string; region?: string; measure?: string; } } = {};
+
+  private isWithinBusinessHours(): boolean {
+    const now = new Date();
+    const brtOffset = -3; // Horário de Brasília é UTC-3
+    const currentHour = (now.getUTCHours() + brtOffset + 24) % 24; // Convertendo para horário de Brasília
+  
+    // Defina o horário de início e término do atendimento
+    const startHour = 8; // 08:00
+    const endHour = 17;  // 17:00
+  
+    // Verifica se a hora atual está dentro do horário de atendimento
+    return currentHour >= startHour && currentHour < endHour;
+  };
   
   private async getConversationState(chatId: string): Promise<ConversationStep> {
     return this.conversationState[chatId] || 'INITIAL_CONTACT';
@@ -139,9 +155,10 @@ export class WhatsService {
 
   private async handleIncomingMessage(message: Message) {
     const chatId = message.from;
-    const contact = await message.getContact();
-    if (contact.isMyContact) {
-      return;
+    const haveLabel = await this.client.getChatLabels(chatId);
+    if(haveLabel.length != 0){
+      await this.client.addOrRemoveLabels([], [chatId])
+      return 
     }
     const conversationStep = await this.getConversationState(chatId);
     switch (conversationStep) {
@@ -183,9 +200,13 @@ export class WhatsService {
   };
 
   private async finalizeProcess(chatId: string) {
-    const userData = this.userData[chatId];
-    // chatId.label(chatId, [{hexColor:'',id:'',name:''}])
-    await this.client.sendMessage(chatId, "Obrigado! Seus dados foram salvos com sucesso.");
+    this.client.addOrRemoveLabels(['18'], [chatId])
+    if (!this.isWithinBusinessHours()) {
+      await this.client.sendMessage(chatId, "📢 *Expediente finalizado*\n\n Entraremos em contato assim que pudermos. O horário de atendimento é das 08:00 às 17:00.");
+      return;
+    }
+    await this.client.sendMessage(chatId, "💁🏾‍♀️ *Obrigada!* \n\n Agora vamos te passar para nossos atendentes, para apresentar as operações.");
+    console.log('+1 complet')
     await this.updateConversationState(chatId, 'COMPLETE');
     delete this.userData[chatId];
   };
@@ -200,7 +221,6 @@ export class WhatsService {
   private async sendFirstContactResponse(chatId: string){
     try {
       const presentation = `💁🏾‍♀️ \n*Olá, somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixservlog.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
-      console.log(chatId)
       await this.client.sendMessage(chatId, presentation);
       await this.client.sendMessage(chatId, "👋 Qual é o seu nome?");
     } catch (err) {
@@ -246,15 +266,19 @@ export class WhatsService {
   };
 
   private async confirmData(chatId: string) {
-    const userData = this.userData[chatId];
-    if (userData) {
+    try{
+      const userData = this.userData[chatId];
       const confirmationMessage = `📋📦 As informações está correta? \n\n 😁 *Nome:* ${userData.name}\n🚚 *Veículo:* ${userData.vehicle}\n📍 *Região:* ${userData.region}\n📐 *Medida:* ${userData.measure} \n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
-      await this.client.sendMessage(chatId, confirmationMessage);
-      await this.updateConversationState(chatId, 'CONFIRMATION');
-    } else {
-      await this.client.sendMessage(chatId, "Não consegui coletar todas as informações. Por favor, tente novamente.");
-      // Opcional: Retornar ao início ou terminar o atendimento
+      if (userData) {
+        await this.client.sendMessage(chatId, confirmationMessage);
+        await this.updateConversationState(chatId, 'CONFIRMATION');
+      } else {
+        await this.client.sendMessage(chatId, "Não consegui coletar todas as informações. Por favor, tente novamente.");
+        // Opcional: Retornar ao início ou terminar o atendimento
+      }
+    }catch(e){
+      console.log(e)
     }
   };
-  
+
 }
