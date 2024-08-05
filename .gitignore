@@ -11,6 +11,11 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+
+# ENV
+.env.production
+.env.development.local
+
 # Whatsapp
 .wwebjs_auth
 .wwebjs_auth/

@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateWhatDto } from './dto/create-what.dto';
-import { UpdateWhatDto } from './dto/update-what.dto';
-import { Buttons,Label ,Client, LocalAuth, Message, List } from 'whatsapp-web.js'
+import { Client, LocalAuth, Message, } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
+import { LeadService } from 'src/lead/lead.service';
+import FindTimeSP from 'hooks/time';
 type ConversationStep = 'INITIAL_CONTACT' | 'GET_NAME' | 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'COMPLETE' | 'CONFIRMATION';
 @Injectable()
 export class WhatsService {
   private client: Client;
+
+  constructor(
+    private leadService  : LeadService,    
+  ){}
 
   onModuleInit() {
     this.client = new Client({
@@ -46,7 +50,8 @@ export class WhatsService {
     });
 
     this.client.initialize();
-  }
+  };
+  
 
   // ################ ACTIVE ###################### \\
 
@@ -84,7 +89,7 @@ export class WhatsService {
       };
       
     }
-  }
+  };
 
   async avalidPhotoReproved(number: string, photo: string) {
     const newNumber = `${number}@c.us`; // número do destinatário
@@ -104,7 +109,7 @@ export class WhatsService {
         message: 'Server internal error'
       };
     }
-  }
+  };
   
   async forgotPassword(number: string, code: string){
     const newNumber = `${number}@c.us`; 
@@ -125,7 +130,7 @@ export class WhatsService {
         message: 'Server internal error'
       };
     }
-  }
+  };
 
   // ################ PASSIVE ###################### \\
 
@@ -206,7 +211,21 @@ export class WhatsService {
       return;
     }
     await this.client.sendMessage(chatId, "💁🏾‍♀️ *Obrigada!* \n\n Agora vamos te passar para nossos atendentes, para apresentar as operações.");
-    console.log('+1 complet')
+    const time = FindTimeSP();
+    const userData = this.userData[chatId];
+    const phone = chatId.replace(/\D/g, '');
+    const params = {
+      id_admin   :0,
+      phone      :phone,
+      typeVehicle:userData.vehicle,
+      name       :userData.name,
+      region     :userData.region,
+      measure    :userData.region,
+      label      :'yellow',
+      create_at  :time
+    }
+    const response = await this.leadService.create(params);
+    console.log(response);
     await this.updateConversationState(chatId, 'COMPLETE');
     delete this.userData[chatId];
   };
