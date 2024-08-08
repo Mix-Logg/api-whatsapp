@@ -3,13 +3,14 @@ import { Client, LocalAuth, Message, } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
 import { LeadService } from 'src/lead/lead.service';
 import FindTimeSP from 'hooks/time';
-type ConversationStep = 'INITIAL_CONTACT' | 'GET_NAME' | 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'COMPLETE' | 'CONFIRMATION';
+type ConversationStep = 'INITIAL_CONTACT' | 'GET_NAME' | 
+'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'COMPLETE' | 'CONFIRMATION' | 'INVITATION' | '';
 @Injectable()
 export class WhatsService {
   private client: Client;
 
   constructor(
-    private leadService  : LeadService,    
+    private leadService:LeadService,    
   ){}
 
   onModuleInit() {
@@ -158,6 +159,39 @@ export class WhatsService {
     this.conversationState[chatId] = step;
   };
 
+  private async finalizeProcess(chatId: string) {
+    this.client.addOrRemoveLabels(['18'], [chatId])
+    if (!this.isWithinBusinessHours()) {
+      await this.client.sendMessage(chatId, "📢 *Expediente finalizado*\n\n Entraremos em contato assim que pudermos. O horário de atendimento é das 08:00 às 17:00.");
+      return;
+    }
+    await this.client.sendMessage(chatId, "💁🏾‍♀️ *Obrigada!* \n\n Agora vamos te passar para nossos atendentes, para apresentar as operações.");
+    const time = FindTimeSP();
+    const userData = this.userData[chatId];
+    const phone = chatId.replace(/\D/g, '');
+    const params = {
+      id_admin   :0,
+      phone      :phone,
+      typeVehicle:userData.vehicle,
+      name       :userData.name,
+      region     :userData.region,
+      measure    :userData.region,
+      label      :'yellow',
+      create_at  :time
+    }
+    const response = await this.leadService.create(params);
+    console.log(response);
+    await this.updateConversationState(chatId, 'COMPLETE');
+    delete this.userData[chatId];
+  };
+  
+  private async resetProcess(chatId: string) {
+    await this.client.sendMessage(chatId, "Errei 🤦🏾‍♀️ vamos começar de novo\n Qual é o seu nome? 🤐");
+    await this.updateConversationState(chatId, 'GET_NAME');
+    // Opcional: Limpar os dados do usuário se necessário
+    delete this.userData[chatId];
+  };
+
   private async handleIncomingMessage(message: Message) {
     const chatId = message.from;
     const haveLabel = await this.client.getChatLabels(chatId);
@@ -204,44 +238,11 @@ export class WhatsService {
     }
   };
 
-  private async finalizeProcess(chatId: string) {
-    this.client.addOrRemoveLabels(['18'], [chatId])
-    if (!this.isWithinBusinessHours()) {
-      await this.client.sendMessage(chatId, "📢 *Expediente finalizado*\n\n Entraremos em contato assim que pudermos. O horário de atendimento é das 08:00 às 17:00.");
-      return;
-    }
-    await this.client.sendMessage(chatId, "💁🏾‍♀️ *Obrigada!* \n\n Agora vamos te passar para nossos atendentes, para apresentar as operações.");
-    const time = FindTimeSP();
-    const userData = this.userData[chatId];
-    const phone = chatId.replace(/\D/g, '');
-    const params = {
-      id_admin   :0,
-      phone      :phone,
-      typeVehicle:userData.vehicle,
-      name       :userData.name,
-      region     :userData.region,
-      measure    :userData.region,
-      label      :'yellow',
-      create_at  :time
-    }
-    const response = await this.leadService.create(params);
-    console.log(response);
-    await this.updateConversationState(chatId, 'COMPLETE');
-    delete this.userData[chatId];
-  };
-  
-  private async resetProcess(chatId: string) {
-    await this.client.sendMessage(chatId, "Vamos começar de novo. Qual é o seu nome?");
-    await this.updateConversationState(chatId, 'GET_NAME');
-    // Opcional: Limpar os dados do usuário se necessário
-    delete this.userData[chatId];
-  };
-
   private async sendFirstContactResponse(chatId: string){
     try {
-      const presentation = `💁🏾‍♀️ \n*Olá, somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixservlog.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
+      const presentation = `💁🏾‍♀️ *Olá, Seja bem vindo ao nosso atendimento!*\n *Eu sou a Mix a sua atendente!*  \n\n*Nós somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixservlog.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
       await this.client.sendMessage(chatId, presentation);
-      await this.client.sendMessage(chatId, "👋 Qual é o seu nome?");
+      await this.client.sendMessage(chatId, "🧡 Qual é o seu nome?");
     } catch (err) {
       console.error('Erro ao enviar a mensagem:', err);
       process.exit(1)
@@ -254,7 +255,8 @@ export class WhatsService {
       this.userData[chatId] = {};
     }
     this.userData[chatId].name = name;
-    await this.client.sendMessage(chatId, "🚚 Qual é o seu veículo?");
+    const message = '🛞 Qual é o tipo do seu veículo?\n\n1- moto 🛵 \n2- carro 🚗\n3- furgão 🛻\n4- van 🚐\n5- hr 🚚\n6- vuc 🚚';
+    await this.client.sendMessage(chatId, message);
   };
 
   private async collectVehicleInfo(chatId: string, vehicleInfo: string) {
