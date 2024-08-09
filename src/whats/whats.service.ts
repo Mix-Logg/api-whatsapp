@@ -17,7 +17,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/usr/bin/chromium-browser',
+        executablePath: '/usr/bin/chromium-browser',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -43,12 +43,12 @@ export class WhatsService {
       console.log('Cliente está pronto!');
     });
 
-    this.client.on('message', async (message: Message) => {
-      if(message.id.remote != '5511932291233@c.us'){
-        return
-      }
-      await this.handleIncomingMessage(message);
-    });
+    // this.client.on('message', async (message: Message) => {
+    //   if(message.id.remote != '5511932291233@c.us'){
+    //     return
+    //   }
+    //   await this.handleIncomingMessage(message);
+    // });
 
     this.client.initialize();
   };
