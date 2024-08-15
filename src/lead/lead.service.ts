@@ -43,8 +43,9 @@ export class LeadService {
   };
 
   async findOnePhone(phone: string) {
+    console.log(phone)
     const lead = await this.leadRepository.findOne({where:{phone}});
-    if(lead != null){
+    if(lead){
       return {
         status:200,
         result:lead
