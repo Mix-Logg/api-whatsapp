@@ -5,7 +5,7 @@ import { LeadService } from 'src/lead/lead.service';
 import FindTimeSP from 'hooks/time';
 type ConversationStepOne = 'INITIAL_CONTACT' | 'GET_NAME' | 
 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'COMPLETE' | 'CONFIRMATION' ;
-type ConversationStepTwo = 'INVITATION' | 'DECISION' | 'CADASTER' | 'CONFIRM_CADASTER' | 'PROPOSAL';
+type ConversationStepTwo = 'INVITATION' | 'DECISION' | 'CADASTER' | 'CONFIRM_CADASTER' | 'PROPOSAL' | 'PRESENTATION' | 'DECISION_PROPOSAL' | 'APPROVED' | 'RECUSE' | 'WAIT';
 @Injectable()
 export class WhatsService {
   private client: Client;
@@ -216,7 +216,7 @@ export class WhatsService {
       create_at  :time
     }
     const response = await this.leadService.create(params);
-    const presentation = `*A Mix Entregas* 🧡\nestá construindo o futuro das entregas no Brasil. \nvenha fortalecer a nossa:\n *COMUNIDADE DE ENTREGADORES* \ne aproveitar as oportunidades para realizar entregas através:\n *APP MIX DRIVE* \n *OPERAÇÕES DEDICAS* \nmande seu e-mail para acesso antecipado \n\n*1-* Cadastrar no app \n*2-* Conhecer operações`
+    const presentation = `*A Mix Entregas* 🧡\n\nEstá construindo o futuro das entregas no Brasil 🇧🇷\n\nVenha fortalecer 💪🏾 a nossa comunidade de entregadores 📦\n\nE aproveitar as oportunidades para realizar entregas através:\n 📱 App Mix Drive \n 🚀 Operações Dedicadas  \n\n*1-* Cadastrar no app \n*2-* Conhecer operações`
     await this.client.sendMessage(chatId, presentation);
     delete this.userData[chatId];
   };
@@ -354,7 +354,7 @@ export class WhatsService {
             await this.updateConversationStateTwo(chatId, 'CADASTER');
             break;
           case '2':
-            this.sendProposal(chatId)
+            this.sendProposalOption(chatId)
             break;
             default:
               await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n*1-* Cadastrar no app \n*2-* Conhecer operações");
@@ -368,7 +368,10 @@ export class WhatsService {
       case 'CONFIRM_CADASTER':
         switch (message.body.toLocaleLowerCase()) {
           case 'sim':
-            this.sendProposal(chatId)
+            const message = `*Perfeito* 👌🏾, em breve vamos te enviar o link para download\n\nagora vou te apresentar as operações`
+            await this.client.sendMessage(chatId, message);  
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
             break;
           case 'não':
             this.sendApp(chatId)
@@ -384,39 +387,187 @@ export class WhatsService {
         }
         break
       case 'PROPOSAL':
-        const response = this.leadService.findOnePhone(chatId)
-        console.log(response)
+        this.sendProposalOption(chatId)
         break
-    };
+      case 'PRESENTATION':
+        this.sendPressentationOrHelp(chatId, message.body.toLowerCase());
+        break
+      case 'DECISION_PROPOSAL':
+        this.sendDecisionProposal(chatId,message.body)
+        break
+      case 'APPROVED':
+        break
+      case 'RECUSE':
+        this.sendRecuse(chatId)
+        await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+        break
+      case 'WAIT':
+        this.sendWaitService(chatId)
+        break;
+     };
   }
 
   private async sendInvitationApp(chatId: string){
-    const presentation = `*A Mix Entregas* 🧡\nestá construindo o futuro das entregas no Brasil. \nvenha fortalecer a nossa:\n *COMUNIDADE DE ENTREGADORES* \ne aproveitar as oportunidades para realizar entregas através:\n *APP MIX DRIVE* \n *OPERAÇÕES DEDICAS* \nmande seu e-mail para acesso antecipado \n\n*1-* Cadastrar no app \n*2-* Conhecer operações`
+    const presentation = `*A Mix Entregas* 🧡\n\nEstá construindo o futuro das entregas no Brasil 🇧🇷\n\nVenha fortalecer 💪🏾 a nossa comunidade de entregadores 📦\n\nE aproveitar as oportunidades para realizar entregas através:\n 📱 App Mix Drive \n 🚀 Operações Dedicadas  \n\n*1-* Cadastrar no app \n*2-* Conhecer operações`
     await this.client.sendMessage(chatId, presentation);
-  }
+  };
 
   private async sendApp(chatId: string){
     const message = `*Envie seu email* 📧 \nO que está registrado na sua playStore, e te daremos acesso antecipato em breve \n\n *Qual seu email?* ✍🏾`
     await this.client.sendMessage(chatId, message);
-  }
+  };
 
   private async sendConfirmEmail(chatId: string, email: string){
     const message = `📧 ${email} \n\n*o e-mail está correto 👀?* \nResponda com "sim" ou "não"`
     await this.client.sendMessage(chatId, message);
-  }
+  };
 
-  private async sendProposal(chatId: string){
+  private async sendProposalOption(chatId: string){
     const response = await this.leadService.findOnePhone(chatId.replace(/@c\.us$/, ''))
     switch (response.result.typeVehicle.toLowerCase()) {
+      case 'moto':
+        await this.client.sendMessage(chatId, `atualmente não temos operações para motos 😞 \n\n mas assim que abri uma oportunidade, entraremos em contato 😀`);
+        break
+      case 'carro':
+        await this.client.sendMessage(chatId, `atualmente não temos operações para carro 😞 \n\n mas assim que abri uma oportunidade, entraremos em contato 😀`);
+        break
+      case 'fiorino':
+        await this.client.sendMessage(chatId, `*Seus dados foram salvos* ✅\n\n os nossos atendentes vão continuar com o seu atendimento 🤩`);
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break
+      case 'van':
+        await this.client.sendMessage(chatId, `*Seus dados foram salvos* ✅\n\n os nossos atendentes vão continuar com o seu atendimento 🤩`);
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break
+      case 'hr':
+        await this.client.sendMessage(chatId, `*Seus dados foram salvos* ✅\n\n os nossos atendentes vão continuar com o seu atendimento 🤩`);
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break
       case 'vuc':
-        const message = `*PROPOSTA OPERAÇÃO DEDICADA FAST CAJAMAR* \n\n*PERFIL VUC 🚚*\n\n📍 *Local:* Cd Cajamar\n⏰ *Horário:* Carregamento 5h\n📅 *Segunda a Sábado*\n `
+        const message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Operações Dedicadas*\n\n1- Fast-Shop\n0- Falar com suporte`
         await this.client.sendMessage(chatId, message);
+        await this.updateConversationStateTwo(chatId, 'PRESENTATION');
         break;
-    
+      case '3/4':
+        await this.client.sendMessage(chatId, `*Seus dados foram salvos* ✅\n\n os nossos atendentes vão continuar com o seu atendimento 🤩`);
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break
+      case 'toco':
+        await this.client.sendMessage(chatId, `*Seus dados foram salvos* ✅\n\n os nossos atendentes vão continuar com o seu atendimento 🤩`);
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break
+      case 'truck':
+        await this.client.sendMessage(chatId, `*Seus dados foram salvos* ✅\n\n os nossos atendentes vão continuar com o seu atendimento 🤩`);
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break
       default:
-
+        this.client.addOrRemoveLabels([], [chatId])
+        await this.client.sendMessage(chatId, `Não reconheci seu registro, Vamos começar novamente`);
+        await this.updateConversationStateOne(chatId, 'GET_NAME');
+        this.sendFirstContactResponse(chatId)
         break;
     }
+  };
+
+  private async sendPressentationOrHelp(chatId: string, message:string){
+    const response = await this.leadService.findOnePhone(chatId.replace(/@c\.us$/, ''))
+    let sendMessage:string;
+    switch (response.result.typeVehicle.toLowerCase()) {
+      case 'moto':
+        
+        break;
+      case 'carro':
+        
+        break;
+      case 'fiorino':
+        
+        break;
+      case 'van':
+        
+        break;
+      case 'hr':
+        
+        break;
+      case 'vuc':
+        switch (message) {
+          case '1':
+            sendMessage = `*Fast-Shop*\n\n🚪Operação: porta a porta\n📍Local: Cd Cajamar\n🕑Período: Segunda a Sábado\n🚚Carregamento: 5:00h  \n🚧Pedágio: reembolso pedágio no sem parar.\n📦Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)*\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos) \n\n1- aceitar \n2- recusar\n3- voltar as operações\n\n0- Suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.updateConversationStateTwo(chatId, 'WAIT');
+            break;
+          default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
+            const message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Operações Dedicadas*\n\n1- Fast-Shop\n0- Falar com suporte`
+            await this.client.sendMessage(chatId, message);
+            break;
+        }
+        break;
+      case '3/4':
+        
+        break;
+      case 'toco':
+        
+        break;
+      case 'truck':
+        
+        break;
+      default:
+        this.client.addOrRemoveLabels([], [chatId])
+        await this.client.sendMessage(chatId, `Não reconheci seu registro, Vamos começar novamente`);
+        await this.updateConversationStateOne(chatId, 'GET_NAME');
+        this.sendFirstContactResponse(chatId)
+        break;
+    }
+  };
+
+  private async sendDecisionProposal(chatId:string, sendMessage:string){
+    let message
+    switch (sendMessage) {
+      case '1':
+        await this.client.sendMessage(chatId,'*Ótimo*\nagora precisa de mais 1 passo')
+        message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n`
+        await this.client.sendMessage(chatId,message)
+        await this.updateConversationStateTwo(chatId, 'APPROVED');
+        break;
+      case '2':
+        await this.client.sendMessage(chatId,'Obrigado 🥲\n\n Assim que tivemos novas opções de operação entraremos em contato 📞')
+        await this.updateConversationStateTwo(chatId, 'RECUSE');
+        break;
+      case '3':
+        this.sendProposalOption(chatId)
+        await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+        break
+      case '0':
+        await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+        await this.updateConversationStateTwo(chatId, 'WAIT');
+        break;
+      default:
+        await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
+        message = `1- Aceitar \n2- Recusar \n0- Suporte`
+        await this.client.sendMessage(chatId, message);
+        break;
+    }
+  };
+
+  private async sendRecuse(chatId:string){
+    await this.client.sendMessage(chatId,'*Que bom falar com você novamente* 😀 \n\n não vou perder tempo e já apresentar as operações! 😎')
+    this.sendProposalOption(chatId)
+  }
+
+
+
+  private async sendWaitService(chatId: string){
+    await this.client.sendMessage(chatId, `*você já está na lista de atendimento* 📋 \n\n🕙 aguarde nossos atendentes já entrarão em contato`);
   }
 
 }
