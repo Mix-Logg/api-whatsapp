@@ -15,6 +15,9 @@ export class Lead {
     phone: string;
 
     @Column({ length: 50, default:null })
+    email: string;
+
+    @Column({ length: 50, default:null })
     label: string;
 
     @Column({ length: 50, default:null })

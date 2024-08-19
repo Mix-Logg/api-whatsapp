@@ -1,8 +1,9 @@
 export class UpdateLeadDto {
     id_admin?:number;
     status?:string;
-    name?:string;
-    phone?:string;
+    name  ?:string;
+    email ?:string;
+    phone ?:string;
     typeVehicle?:string;
     occurrence?:string;
     update_at_occurrence?:string;
