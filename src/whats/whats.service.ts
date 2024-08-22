@@ -1,24 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { Client, LocalAuth, Message, } from 'whatsapp-web.js'
+import { Client, LocalAuth, Message, MessageMedia, } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
 import { LeadService } from 'src/lead/lead.service';
 import FindTimeSP from 'hooks/time';
+
 type ConversationStepOne = 'INITIAL_CONTACT' | 'GET_NAME' | 
-'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'GET_EMAIL' | 'COMPLETE' | 'CONFIRMATION' ;
-type ConversationStepTwo = 'INVITATION' | 'PROPOSAL' | 'PRESENTATION' | 'DECISION_PROPOSAL' | 'APPROVED' | 'RECUSE' | 'REGION_PROPOSAL';
+'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'GET_EMAIL' | 'COMPLETE' | 'CONFIRMATION' | 'TRACKER';
+type ConversationStepTwo = 'INVITATION' | 'PROPOSAL' | 'PRESENTATION' | 'DECISION_PROPOSAL' | 'APPROVED' | 'RECUSE' | 'REGION_PROPOSAL' ;
 @Injectable()
 export class WhatsService {
   private client: Client;
 
   constructor(
-    private leadService:LeadService,    
+    private leadService:LeadService,  
+    
   ){}
 
   onModuleInit() {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/usr/bin/chromium-browser',
+        executablePath: '/usr/bin/chromium-browser',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -45,9 +47,9 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
-      if(message.id.remote != '5511932291233@c.us'){
-        return
-      }
+      // if(message.id.remote != '5511932291233@c.us'){
+      //   return
+      // }
       const haveLabel = await this.client.getChatLabels(message.from);
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
@@ -76,7 +78,6 @@ export class WhatsService {
     this.client.initialize();
   };
   
-
   // ################ ACTIVE ###################### \\
 
   async availability(number: string, status: string, date: string) {
@@ -159,7 +160,7 @@ export class WhatsService {
   // ################ PASSIVE (no label) ###################### \\
 
   private conversationState: { [chatId: string]: ConversationStepOne } = {};
-  private userData: { [chatId: string]: { name?: string; vehicle?: string; region?: string; measure?: string; email?:string; } } = {};
+  private userData: { [chatId: string]: { name?: string; vehicle?: string; region?: string; measure?: string; email?:string; tracker?:string } } = {};
 
   private async handleIncomingMessage(message: Message) {
     const chatId = message.from;
@@ -191,8 +192,13 @@ export class WhatsService {
 
       case 'GET_MEASURE':
         await this.collectMeasureInfo(chatId, message.body);
-        await this.updateConversationStateOne(chatId, 'CONFIRMATION');
+        await this.updateConversationStateOne(chatId, 'TRACKER');
         break;
+      
+      case 'TRACKER':
+        await this.collectTrackerInfo(chatId, message.body);
+        await this.updateConversationStateOne(chatId, 'CONFIRMATION');
+        break
 
       case 'CONFIRMATION':
         if (message.body.toLowerCase() === 'sim') {
@@ -216,6 +222,7 @@ export class WhatsService {
   };
 
   private async finalizeProcess(chatId: string) {
+    await this.updateConversationStateTwo(chatId, 'PROPOSAL');
     this.client.addOrRemoveLabels(['18'], [chatId])
     const time = FindTimeSP();
     const userData = this.userData[chatId];
@@ -228,13 +235,13 @@ export class WhatsService {
       region     :userData.region,
       measure    :userData.measure,
       email      :userData.email,
+      tracker    :userData.tracker,
       label      :'yellow',
       create_at  :time
     }
     const response = await this.leadService.create(params);
-    await this.updateConversationStateTwo(chatId, 'PROPOSAL');
-    const presentation = `*A Mix Entregas* 🧡\n\nEstá construindo o futuro das entregas no Brasil 🇧🇷\n\nVenha fortalecer 💪🏾 a nossa comunidade de entregadores 📦\n\nE aproveitar as oportunidades para realizar entregas através:\n 📱 App Mix Drive \n 🚀 Operações Dedicadas  \n\n*1-* Cadastrar no app \n*2-* Conhecer operações`
-    await this.client.sendMessage(chatId, presentation);
+    await this.sendInvitationApp(chatId);
+    await this.sendProposalOption(chatId)
     delete this.userData[chatId];
   };
   
@@ -335,13 +342,22 @@ export class WhatsService {
       this.userData[chatId] = {};
     }
     this.userData[chatId].measure = measureInfo;
+    await this.client.sendMessage(chatId, `📡 Qual seu rastreador? \n\nSe não tiver digite "não tenho"`);
+  };
+
+  private async collectTrackerInfo(chatId: string, trackerInfo: string) {
+    // Armazena a informação do veículo
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].tracker = trackerInfo;
     await this.confirmData(chatId); 
   };
 
   private async confirmData(chatId: string) {
     try{
       const userData = this.userData[chatId];
-      const confirmationMessage = `📋📦 As informações está correta? \n\n😁 *Nome:* ${userData.name}\n📧 *Email:* ${userData.email} \n🚚 *Veículo:* ${userData.vehicle}\n📍 *Região:* ${userData.region}\n📐 *Medida:* ${userData.measure} \n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
+      const confirmationMessage = `📋📦 As informações está correta? \n\n😁 *Nome:* ${userData.name}\n📧 *Email:* ${userData.email} \n🚚 *Veículo:* ${userData.vehicle}\n📡 *Rastreador:* ${userData.tracker} \n📍 *Região:* ${userData.region}\n📐 *Medida:* ${userData.measure} \n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
       if (userData) {
         await this.client.sendMessage(chatId, confirmationMessage);
         await this.updateConversationStateOne(chatId, 'CONFIRMATION');
@@ -389,7 +405,7 @@ export class WhatsService {
         await this.updateConversationStateTwo(chatId, 'PROPOSAL');
         break
      };
-  }
+  };
 
   private async sendInvitationApp(chatId: string){
     const presentation = `*A Mix Entregas* 🧡\n\nEstá construindo o futuro das entregas no Brasil 🇧🇷\n\nVenha fortalecer 💪🏾 a nossa comunidade de entregadores 📦\n\nE aproveitar as oportunidades para realizar entregas através:\n 📱 App Mix Drive \n 🚀 Operações Dedicadas\n`
@@ -413,17 +429,17 @@ export class WhatsService {
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'van':
-          message = `🚐 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Guarulhos/SP\n*2-* Vila Leopoldina/SP \n\n*0-* Falar com atendente`
+          message = `🚐 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\nAtualmente estamos sem operação para veículos vans`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'hr':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Guarulhos/SP\n*3-* Vila Leopoldina/SP\n*4-* Uberlândia/MG\n*5-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Uberlândia/MG\n*3-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'vuc':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Barueri/SP\n*3-* Uberlândia/MG\n*3-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Barueri/SP\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return;
@@ -454,6 +470,8 @@ export class WhatsService {
   private async sendPressentationOrHelp(chatId: string, message:string){
     const response = await this.leadService.findOnePhone(chatId.replace(/@c\.us$/, ''))
     let sendMessage:string;
+    let imagePath
+    let media
     switch (response.result.typeVehicle.toLowerCase()) {
       case 'moto':
         switch (message) {
@@ -488,39 +506,119 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)*\n🤑 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💸 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*1-* aceitar \n*2-* voltar as operações\n\n*0-* Falar com atendente`
+            const imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
+            const media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
-            break;
+            return;
           case '0':
             await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
             await this.client.addOrRemoveLabels([], [chatId])
             this.client.addOrRemoveLabels(['24'], [chatId])
-            break;
+            return;
           default:
             await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             this.sendProposalOption(chatId)
-            break;
+            return;
         }
-        break;
-      case 'van':
-        switch (message) {
-          case '1':
-            
-            break;
-          
-          default:
-            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
-            this.sendProposalOption(chatId)
-            break;
-        } 
-        break;
+        break
+      // case 'van':
+      //   switch (message) {
+      //     case '':
+      //       sendMessage = `*Guarulhos/SP*\n\n🍽️ *Operação:* Restaurantes\n📍 *Local:* Guarulhos/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Alimentos`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*Epi's*\n\n🛒 *Carrinho para carga*\n🦺 *Colete*\n🥾 *Bota*`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*Pagamento*\n\nPeríodo semanal 📅\n📌 1° Pagamento com 15 dias\nDemais pagamentos 💰\n📌 Fluxo Semanal\n\n0 a 75Km = R$ 350,00\n📍 Add entrega R$ 5,00\n 📦 + 21 entregas`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+      //       return;
+      //     case '':
+      //       sendMessage = `*Vila Leopoldina/SP*\n\n🍽️ *Operação:* Restaurantes\n📍 *Local:* Vila Leopoldina/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Alimentos`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*Epi's*\n\n🛒 *Carrinho para carga*\n🦺 *Colete*\n🥾 *Bota*`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*Pagamento*\n\nPeríodo semanal 📅\n📌 1° Pagamento com 15 dias\nDemais pagamentos 💰\n📌 Fluxo Semanal\n\n0 a 75Km = R$ 350,00\n📍 Add entrega R$ 5,00\n 📦 + 21 entregas`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+      //       return;
+      //     case '':
+      //       sendMessage = `*Santo André/SP*\n\n🍽️ *Operação:* Restaurantes\n📍 *Local:* Santo André/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Alimentos`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*Epi's*\n\n🛒 *Carrinho para carga*\n🦺 *Colete*\n🥾 *Bota*`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*Pagamento*\n\nPeríodo semanal 📅\n📌 1° Pagamento com 15 dias\nDemais pagamentos 💰\n📌 Fluxo Semanal\n\n0 a 75Km = R$ 350,00\n📍 Add entrega R$ 5,00\n 📦 + 21 entregas`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+      //       await this.client.sendMessage(chatId, sendMessage);
+      //       await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+      //       return;
+      //     case '0':
+      //       await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+      //       await this.client.addOrRemoveLabels([], [chatId])
+      //       this.client.addOrRemoveLabels(['24'], [chatId])
+      //       break
+      //     default:
+      //       await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
+      //       this.sendProposalOption(chatId)
+      //       break;
+      //   } 
+      //   break;
       case 'hr':
         switch (message) {
           case '1':
-            
+            sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/cajamar-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
-          
+          case '2':
+            sendMessage = `*Uberlândia/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Uberlândia/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;
+          case '3':
+            sendMessage = `*Contagem/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Contagem/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;         
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
             await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             this.sendProposalOption(chatId)
@@ -530,21 +628,64 @@ export class WhatsService {
       case 'vuc':
         switch (message) {
           case '1':
-            sendMessage = `*Fast-Shop*\n\n🚪 Operação: porta a porta\n📍 Local: Cd Cajamar\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*1-* aceitar \n*2-* recusar\n*3-* voltar as operações\n\n*0-* Falar com suporte`
+            imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
+          case '2':
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/americanas/vuc.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            return;
+          case '3':
+            sendMessage = `*Uberlândia/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Uberlândia/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;
+          case '4':
+            sendMessage = `*Contagem/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Contagem/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;       
           case '0':
             await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
             await this.client.addOrRemoveLabels([], [chatId])
             this.client.addOrRemoveLabels(['24'], [chatId])
-            break;
+            break
           default:
             await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             this.sendProposalOption(chatId)
@@ -554,9 +695,50 @@ export class WhatsService {
       case '3/4':
         switch (message) {
           case '1':
-            
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/americanas/34.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
-          
+          case '2':
+            sendMessage = `*Contagem/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Contagem/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Comprimentro menor* de 5,00 \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;
+          case '3':
+            sendMessage = `*Uberlândia/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Uberlândia/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*Pré-requisitos*\n\n✅ *Comprimentro menor* de 5,00\n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            break;
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
             await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             this.sendProposalOption(chatId)
@@ -566,9 +748,22 @@ export class WhatsService {
       case 'toco':
         switch (message) {
           case '1':
-            
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/americanas/toco.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
-          
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
             await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             this.sendProposalOption(chatId)
@@ -578,9 +773,22 @@ export class WhatsService {
       case 'truck':
         switch (message) {
           case '1':
-            
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
+            await this.client.sendMessage(chatId, sendMessage);
+            imagePath =  `table/americanas/truck.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+            sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
+            await this.client.sendMessage(chatId, sendMessage);
+            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
-          
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
             await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             this.sendProposalOption(chatId)
@@ -620,8 +828,12 @@ export class WhatsService {
       case 'fiorino':
         switch (message) {
           case '1':
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+            break;
+          case '2':
             await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
-            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular`
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
             await this.client.sendMessage(chatId,message)
             await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
             await this.client.addOrRemoveLabels([], [chatId])
@@ -634,95 +846,186 @@ export class WhatsService {
             this.client.addOrRemoveLabels(['24'], [chatId])
             break;
           default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             break;
         }
         break;
       case 'van':
         switch (message) {
           case '1':
-            break;
-          
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+            break
+          case '2':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '0':
+              await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+              await this.client.addOrRemoveLabels([], [chatId])
+              this.client.addOrRemoveLabels(['24'], [chatId])
+              break;
           default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             break;
         } 
         break;
       case 'hr':
         switch (message) {
           case '1':
-            break;
-          
-          default:
-            break;
-        }
-        break;
-      case 'vuc':
-        switch (message) {
-          case '1':
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+            break
+          case '2':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '3':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Fotos do Auxiliar (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
           case '0':
             await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
             await this.client.addOrRemoveLabels([], [chatId])
             this.client.addOrRemoveLabels(['24'], [chatId])
             break;
           default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
+            break;
+        }
+        break;
+      case 'vuc':
+        switch (message) {
+          case '1':
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+            break
+          case '2':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Fotos do Auxiliar (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '3':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n✅ 3 Referências de telefone (Motorista/ Proprietário do veículo) \n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break;
+          default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             break;
         }
         break;
       case '3/4':
         switch (message) {
           case '1':
-            break;
-          
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
+            break
+          case '2':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Fotos do Auxiliar (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '3':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n✅ 3 Referências de telefone (Motorista/ Proprietário do veículo) \n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             break;
         }
         break;
       case 'toco':
         switch (message) {
           case '1':
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
             break;
-          
+          case '2':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n✅ 3 Referências de telefone (Motorista/ Proprietário do veículo) \n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             break;
         }
         break;
       case 'truck':
         switch (message) {
           case '1':
-            
+            this.sendProposalOption(chatId)
+            await this.updateConversationStateTwo(chatId, 'PROPOSAL');
             break;
-          
+          case '2':
+            await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
+            message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n✅ 3 Referências de telefone (Motorista/ Proprietário do veículo) \n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Caso o cadastro do carro for jurídico*\n\n✅CNPJ\n✅Inscrição Estadual`
+            await this.client.sendMessage(chatId,message)
+            await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['25'], [chatId])
+            await this.updateConversationStateTwo(chatId, 'APPROVED');
+            break
+          case '0':
+            await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
+            await this.client.addOrRemoveLabels([], [chatId])
+            this.client.addOrRemoveLabels(['24'], [chatId])
+            break
           default:
+            await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
             break;
         }
-        break;
-    }
-    switch (message) {
-      case '1':
-        await this.client.sendMessage(chatId,'*Ótimo* 🙌🏾\nagora precisa de mais *1* passo\n\nenviar os documentos necessarios 📄')
-        message = `*Fotos do Veículo (documentos)*\n\n✅CRLV\n✅ANTT\n\n*Fotos do Motorista (documentos)*\n\n✅CNH\n✅Comprovante de endereço\n\n*Fotos do Auxiliar (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular\n\n*Fotos do Proprietário do Veículo (documentos)*\n\n✅RG ou CNH\n✅Comprovante de endereço\n✅Celular`
-        await this.client.sendMessage(chatId,message)
-        await this.client.sendMessage(chatId,'*Por gentileza enviar as fotos bem legível* 🤳🏾')
-        await this.client.addOrRemoveLabels([], [chatId])
-        this.client.addOrRemoveLabels(['25'], [chatId])
-        await this.updateConversationStateTwo(chatId, 'APPROVED');
-        break;
-      case '2':
-        await this.client.sendMessage(chatId,'Obrigado 🥲\n\n Assim que tivemos novas opções de operação entraremos em contato 📞')
-        await this.updateConversationStateTwo(chatId, 'RECUSE');
-        break;
-      case '3':
-        this.sendProposalOption(chatId)
-        await this.updateConversationStateTwo(chatId, 'PROPOSAL');
-        break
-      case '0':
-        await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
-        await this.client.addOrRemoveLabels([], [chatId])
-        this.client.addOrRemoveLabels(['24'], [chatId])
-        break;
-      default:
-        await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo \n\n Me manda os números que correspondem, por favor! 🔢");
-        message = `*1-* aceitar \n*2-* recusar\n*3-* voltar as operações \n\n*0-* Falar com suporte`
-        await this.client.sendMessage(chatId, message);
         break;
     }
   };

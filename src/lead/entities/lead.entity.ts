@@ -35,6 +35,9 @@ export class Lead {
     @Column({ length: 1, default:'0' })
     status: string;
 
+    @Column({ length: 60 })
+    tracker: string;
+
     @Column({length: 50})
     create_at: string;
 

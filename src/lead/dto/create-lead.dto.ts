@@ -5,6 +5,7 @@ export class CreateLeadDto {
     name       :string
     region     :string
     measure    :string
+    tracker    :string
     email      :string
     label?     :string
     create_at  :string
