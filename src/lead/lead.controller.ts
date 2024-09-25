@@ -19,6 +19,7 @@ export class LeadController {
     return this.leadService.findAll();
   }
 
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.leadService.findOne(+id);

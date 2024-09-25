@@ -1039,4 +1039,163 @@ export class WhatsService {
     await this.client.sendMessage(chatId, `*você já está na lista de atendimento* 📋 \n\n🕙 aguarde nossos atendentes já entrarão em contato`);
   };
 
+  // Statistics
+
+  async statistics() {
+    try {
+      // Obtém todas as labels
+      const labels = await this.client.getLabels();
+      const statisticsByRegion = await this.statisticsByRegion();
+  
+      const statistics = [];
+  
+      // Obtém todos os chats (contatos)
+      const allChats = await this.client.getChats();
+      const chatsWithLabels = new Set();
+  
+      // Itera sobre cada label
+      for (const label of labels) {
+        // Obtém os chats associados a essa label
+        const chats = await this.client.getChatsByLabelId(label.id);
+  
+        // Adiciona esses chats ao conjunto de chats com labels
+        chats.forEach(chat => chatsWithLabels.add(chat.id._serialized));
+  
+        // Adiciona a label e a quantidade de contatos associados a ela
+        statistics.push({
+          labelName: label.name,
+          labelId: label.id,
+          contactCount: chats.length, // Conta a quantidade de chats/contatos
+        });
+      };
+  
+      // Agora, filtra os chats que não possuem etiquetas
+      const chatsWithoutLabels = allChats.filter(
+        chat => !chatsWithLabels.has(chat.id._serialized)
+      );
+  
+      // Adiciona a estatística de contatos sem etiquetas
+      statistics.push({
+        labelName: "Sem etiquetas",
+        labelId: null,
+        contactCount: chatsWithoutLabels.length, // Conta a quantidade de chats sem etiquetas
+      });
+  
+
+      return{
+        status:200,
+        statistics:statistics,
+        statisticsByRegion:statisticsByRegion
+      }
+    } catch (error) {
+      console.error("Erro ao obter estatísticas das labels:", error);
+    }
+  };
+  
+  async statisticsByRegion() {
+    const dddToRegion = {
+      "11": "São Paulo",
+      "12": "São José dos Campos",
+      "13": "Santos",
+      "14": "Bauru",
+      "15": "Sorocaba",
+      "16": "Ribeirão Preto",
+      "17": "São José do Rio Preto",
+      "18": "Presidente Prudente",
+      "19": "Campinas",
+      "21": "Rio de Janeiro",
+      "22": "Campos dos Goytacazes",
+      "24": "Volta Redonda",
+      "27": "Vitória",
+      "28": "Cachoeiro de Itapemirim",
+      "31": "Belo Horizonte",
+      "32": "Juiz de Fora",
+      "33": "Governador Valadares",
+      "34": "Uberlândia",
+      "35": "Poços de Caldas",
+      "37": "Divinópolis",
+      "38": "Montes Claros",
+      "41": "Curitiba",
+      "42": "Ponta Grossa",
+      "43": "Londrina",
+      "44": "Maringá",
+      "45": "Foz do Iguaçu",
+      "46": "Francisco Beltrão",
+      "47": "Joinville",
+      "48": "Florianópolis",
+      "49": "Chapecó",
+      "51": "Porto Alegre",
+      "53": "Pelotas",
+      "54": "Caxias do Sul",
+      "55": "Santa Maria",
+      "61": "Brasília",
+      "62": "Goiânia",
+      "63": "Palmas",
+      "64": "Rio Verde",
+      "65": "Cuiabá",
+      "66": "Rondonópolis",
+      "67": "Campo Grande",
+      "68": "Rio Branco",
+      "69": "Porto Velho",
+      "71": "Salvador",
+      "73": "Ilhéus",
+      "74": "Juazeiro",
+      "75": "Feira de Santana",
+      "77": "Barreiras",
+      "79": "Aracaju",
+      "81": "Recife",
+      "82": "Maceió",
+      "83": "João Pessoa",
+      "84": "Natal",
+      "85": "Fortaleza",
+      "86": "Teresina",
+      "87": "Petrolina",
+      "88": "Juazeiro do Norte",
+      "89": "Picos",
+      "91": "Belém",
+      "92": "Manaus",
+      "93": "Santarém",
+      "94": "Marabá",
+      "95": "Boa Vista",
+      "96": "Macapá",
+      "97": "Coari",
+      "98": "São Luís",
+      "99": "Imperatriz"
+    };
+  
+    try {
+      // Obtém todos os contatos/chats
+      const allChats = await this.client.getChats();
+      
+      const statistics = {};
+  
+      // Função para extrair o DDD de um número de telefone
+      const getRegionFromPhone = (phoneNumber) => {
+        const match = phoneNumber.match(/^55(\d{2})/); // Remove o símbolo + e usa regex para capturar o DDD
+        if (match && match[1]) {
+          const ddd = match[1];
+          return dddToRegion[ddd] || "Região desconhecida"; // Retorna a região ou "Região desconhecida" se o DDD não estiver mapeado
+        }
+        return "Número inválido"; // Retorna "Número inválido" se o formato não for reconhecido
+      };
+  
+      // Itera sobre todos os chats
+      for (const chat of allChats) {
+        if (chat.isGroup) continue; // Ignora grupos
+  
+        const region = getRegionFromPhone(chat.id.user); // Extrai a região com base no número
+        if (!statistics[region]) {
+          statistics[region] = 0;
+        }
+        statistics[region] += 1; // Incrementa o contador de contatos por região
+      };
+  
+      // Mostra as estatísticas de contatos por região
+      return statistics
+    } catch (error) {
+      console.error("Erro ao obter estatísticas por região:", error);
+    }
+  };
+  
+
 }

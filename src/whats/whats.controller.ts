@@ -22,4 +22,9 @@ export class WhatsController {
     return this.whatsService.forgotPassword(number, code);
   }
 
+  @Get('statistics')
+  Statistics(){
+    return this.whatsService.statistics();
+  }
+
 }
