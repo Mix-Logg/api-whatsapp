@@ -4,10 +4,8 @@ import * as qrcode from 'qrcode-terminal';
 import { LeadService } from 'src/lead/lead.service';
 import FindTimeSP from 'hooks/time';
 import OpenAI from "openai";
-import axios from 'axios'
 import * as fs from 'fs';
 import * as path from 'path';
-import * as Jimp from 'jimp';
 @Injectable()
 export class WhatsService {
   private client: Client;
@@ -80,7 +78,6 @@ export class WhatsService {
             return
         }
       };
-      if(message.id.remote == '5511932291233@c.us'){
         const chatId = message.from
         let response:any;
         switch (message.type) {
@@ -105,8 +102,6 @@ export class WhatsService {
             break;
         };
         return
-      }
-      return
     });
 
     this.client.initialize();
