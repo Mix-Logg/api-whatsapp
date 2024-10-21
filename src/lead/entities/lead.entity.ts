@@ -29,6 +29,9 @@ export class Lead {
     @Column({ length: 200, default:null })
     observation: string;
 
+    @Column({ length: 60 })
+    thread: string;
+
     @Column({ length: 50, default:null })
     typeVehicle: string;
 

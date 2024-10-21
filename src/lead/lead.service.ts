@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import findTimeSP from 'hooks/time';
 @Injectable()
 export class LeadService {
+
   constructor(
     @Inject('LEAD_REPOSITORY') 
     private leadRepository: Repository<Lead>,
@@ -33,7 +34,7 @@ export class LeadService {
 
   async findOne(id: number) {
     const lead = await this.leadRepository.findOne({where:{id}});
-    if(lead != null){
+    if(lead){
       return lead
     }
     return {
@@ -43,7 +44,7 @@ export class LeadService {
   };
 
   async findOnePhone(phone: string) {
-    console.log(phone)
+    phone = phone.replace('@c.us', '');
     const lead = await this.leadRepository.findOne({where:{phone}});
     if(lead){
       return {
@@ -82,4 +83,5 @@ export class LeadService {
   async remove(id: number) {
     return `This action removes a #${id} lead`;
   };
+
 }

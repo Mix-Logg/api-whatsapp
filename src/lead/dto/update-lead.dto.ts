@@ -6,6 +6,7 @@ export class UpdateLeadDto {
     phone ?:string;
     typeVehicle?:string;
     occurrence?:string;
+    thread?    :string
     update_at_occurrence?:string;
     create_at?:string;
     update_at?:string;
