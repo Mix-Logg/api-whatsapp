@@ -15,10 +15,11 @@ export class LeadService {
 
   async create(createLeadDto: CreateLeadDto) {
     try{
-      await this.leadRepository.save(createLeadDto);
+      const lead = await this.leadRepository.save(createLeadDto);
+      createLeadDto.phone = createLeadDto.phone.replace('@c.us', '');
       return {
         status:201,
-        result:'Successfully created lead'
+        result:lead
       }
     }catch(e){
       return {

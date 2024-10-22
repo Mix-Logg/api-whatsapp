@@ -17,7 +17,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
+        // executablePath: '/usr/bin/chromium-browser',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -44,9 +44,14 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
+      if(message.from != '5511932291233@c.us'){
+        return
+      }
+      console.log('passou')
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
+      console.log(hasRegister)
       if(hasRegister.status == 500){
         const newLead = await this.leadService.create({phone:message.id.remote})
         if(newLead.status == 201){
