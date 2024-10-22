@@ -54,6 +54,7 @@ export class WhatsService {
       console.log(hasRegister)
       if(hasRegister.status == 500){
         const newLead = await this.leadService.create({phone:message.id.remote})
+        console.log(newLead)
         if(newLead.status == 201){
           lead = newLead.result;
         }else{
