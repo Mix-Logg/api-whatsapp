@@ -44,10 +44,6 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
-      if(message.from != '5511932291233@c.us'){
-        return
-      }
-      console.log('passou')
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
