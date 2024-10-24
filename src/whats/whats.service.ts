@@ -62,10 +62,9 @@ export class WhatsService {
     this.client.on('message', async (message: Message) => {
       this.verifyGroup(message)
       
-      if(message.from !== '5511932291233@c.us'){
-        return
+      if(message.from == '5511932291233@c.us'){
+        await this.client.sendMessage(message.from, `Estou funcionando gatão!`);
       };
-      console.log('ok')
         // this.sendMessageToGroupWithNumber(message.from,'test')
       return
     });
