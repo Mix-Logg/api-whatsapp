@@ -56,14 +56,24 @@ export class WhatsService {
     this.client.on('ready', () => {
       console.log('Cliente está pronto!');
       this.call = true
-      setInterval(this.verifyHour.bind(this), 25 * 1000);
+      try{
+        setInterval(this.verifyHour.bind(this), 25 * 1000);
+      } catch (err) {
+        console.error('Erro ao enviar a mensagem:', err);
+        process.exit(1)
+      }
     });
 
     this.client.on('message', async (message: Message) => {
       this.verifyGroup(message)
       
       if(message.from == '5511932291233@c.us'){
-        await this.client.sendMessage(message.from, `Estou funcionando gatão!`);
+        try{
+          await this.client.sendMessage(message.from, `Estou funcionando gatão!`);
+        } catch (err) {
+          console.error('Erro ao enviar a mensagem:', err);
+          process.exit(1)
+        }
       };
         // this.sendMessageToGroupWithNumber(message.from,'test')
       return
