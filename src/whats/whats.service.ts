@@ -315,7 +315,7 @@ export class WhatsService {
       this.messageWorkConfirmationList()
       return
     }else{
-      console.log('acabou o horario da confirmação, agora so amanhã')
+      console.log('Aguardando para confirmação.')
     }
   };
 
