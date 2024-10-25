@@ -44,10 +44,10 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
+      console.log(message.from)
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
-      console.log(hasRegister)
       if(hasRegister.status == 500){
         const newLead = await this.leadService.create({phone:message.id.remote})
         if(newLead.status == 201){
@@ -66,15 +66,16 @@ export class WhatsService {
             break;
           case '24':
             const response = await this.submitMessage(lead.thread, `ordem:(Diga que ele está na fila de espera) ${message.body}`, lead.id, null, message.from )
-            await this.client.sendMessage(message.from , response);
+            // await this.client.sendMessage(message.from , response);
             // suport
             return
           case '25':
             // doc
-            break
+            console.log('aguardando documentação')
+            return
           case '26':
             // human
-            return
+            break
           default:
             return
         }
@@ -83,22 +84,25 @@ export class WhatsService {
         let response:any;
         switch (message.type) {
           case 'ptt':
-            console.log('audio')
+            // console.log('audio')
             message.body = `ordem:(Você acabou de receber uma audio, atualmente você não tem suporte de ouvir audio, pergunte se quer conversa com um atendente humano)`
             response = await this.submitMessage(lead.thread, message.body, lead.id, null, chatId )
             break;
           case 'image':
-            // console.log(message._data)
-            message.body = `ordem:(Você acabou de receber uma imagem, atualmente você não tem suporte de visualização pergunte se é algum doc (caso você chegou nessa etapa) e faça uma lista dos documentos faltantes ou pergunte sobre o que se trata) usuario:${message.body}`
+            // console.log('image')
+            message.body = `ordem:(Você acabou de receber uma imagem, atualmente você não tem suporte de visualização) usuario:${message.body}`
             response = await this.submitMessage(lead.thread, message.body, lead.id, null, chatId )
             await this.client.sendMessage(chatId , response);
             break
           case 'document':
-            message.body = `ordem:(Você acabou de receber um pdf, atualmente você não tem suporte de visualização pergunte se é algum doc (caso você chegou nessa etapa) e faça uma lista dos documentos faltantes ou pergunte sobre o que se trata) usuario:${message.body}`
+            // console.log('document')
+            message.body = `ordem:(Você acabou de receber um pdf, atualmente você não tem suporte de visualização  usuario:${message.body}`
             response = await this.submitMessage(lead.thread, message.body, lead.id, null, chatId )
             await this.client.sendMessage(chatId , response);
           default:
+            // console.log('default')
             response = await this.submitMessage(lead.thread, message.body, lead.id, null, chatId )
+            if (response === undefined || response.trim() === "") return;
             await this.client.sendMessage(chatId , response);
             break;
         };
@@ -108,12 +112,11 @@ export class WhatsService {
     this.client.initialize();
   };
 
-
   tractiveMessage(inputString, idLead, chatId) {
     // Usar uma expressão regular para capturar o JSON em um bloco
     const jsonMatch = inputString.match(/```json\s*([\s\S]*?)```/);
     const jsonMatchKeys = inputString.match(/{([^]*?)}/);
-
+    console.log('chamou aqui:' ,inputString)
     // Se não encontrar JSON, retorna a string original
     if (!jsonMatch && !jsonMatchKeys) {
       return inputString;
@@ -140,21 +143,16 @@ export class WhatsService {
   };
 
   async tractiveJson(json, idLead, chatId) {
-    // Limpeza da string JSON para remover quebras de linha e espaços em branco
-    let parsedJson
-    try {
-      parsedJson = JSON.parse(json);
-    } catch (error) {
-      console.error('Erro ao analisar JSON:', error);
-      return; // Retorna em caso de erro para evitar continuar com JSON inválido
-    }
+    console.log(json)
+    json = JSON.parse(json);
     let imagePath;
     let media;
-    switch (parsedJson.type) {
+    switch (json.type) {
       case 'confirm':
-          this.leadService.update(idLead, parsedJson.clientJson);
+          this.leadService.update(idLead, json.clientJson);
           this.client.addOrRemoveLabels([''], [chatId])
           this.client.addOrRemoveLabels(['18'], [chatId])
+          console.log('Etiqueta first contact')
           // etiqueta first contact
           break;
       case 'wait':
@@ -165,14 +163,16 @@ export class WhatsService {
       case 'doc':
             this.client.addOrRemoveLabels([''], [chatId])
             this.client.addOrRemoveLabels(['25'], [chatId])
+            console.log('Etiqueta doc')
             // etiqueta document
-            break;
+            return;
       case 'tableBarueri':
-        switch (parsedJson.clientJson.vehicle.toLowerCase()) {
+        switch (json.clientJson.vehicle.toLowerCase()) {
           case 'vuc':
             imagePath = `table/americanas/vuc.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
+            break;
           case '3/4':
             imagePath = `table/americanas/34.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
@@ -189,12 +189,12 @@ export class WhatsService {
             await this.client.sendMessage(chatId, media);
             break;
           default:
-            console.log(parsedJson.clientJson.vehicle.toLowerCase())
+            console.log(json.clientJson.vehicle.toLowerCase())
             break;
         }
         break
       case 'tableContagem':
-        switch (parsedJson.clientJson.vehicle.toLowerCase()) {
+        switch (json.clientJson.vehicle.toLowerCase()) {
           case 'hr':
             imagePath = `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
@@ -205,12 +205,12 @@ export class WhatsService {
             await this.client.sendMessage(chatId, media);
             break;
           default:
-            console.log(parsedJson.clientJson.vehicle.toLowerCase())
+            console.log(json.clientJson.vehicle.toLowerCase())
             break;
         }
         break
       case 'tableUberlandia':
-        switch (parsedJson.clientJson.vehicle.toLowerCase()) {
+        switch (json.clientJson.vehicle.toLowerCase()) {
           case 'hr':
             imagePath = `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
@@ -221,12 +221,12 @@ export class WhatsService {
             await this.client.sendMessage(chatId, media);
             break;
           default:
-            console.log(parsedJson.clientJson.vehicle.toLowerCase())
+            console.log(json.clientJson.vehicle.toLowerCase())
             break;
         }
         break
       case 'tableCajamar':
-        switch (parsedJson.clientJson.vehicle.toLowerCase()) {
+        switch (json.clientJson.vehicle.toLowerCase()) {
           case 'fiorino':
             imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
@@ -242,12 +242,12 @@ export class WhatsService {
             await this.client.sendMessage(chatId, media);
             break;
           default:
-            console.log(parsedJson.clientJson.vehicle.toLowerCase())
+            console.log(json.clientJson.vehicle.toLowerCase())
             break;
         }
         break
       default:
-          console.log('Tipo não reconhecido:', typeof(parsedJson));
+          console.log('Tipo não reconhecido:', typeof(json));
           console.log()
           break;
     }
@@ -258,66 +258,64 @@ export class WhatsService {
     const assistantId = process.env.KEY_MIX
 
     const client = new OpenAI({ apiKey: api_key }); // Substitua por sua chave da API
-    
-    try {
-      if(!threadId){
-        const emptyThread = await client.beta.threads.create();
-        this.leadService.update(leadId, {thread:emptyThread.id})
-        threadId = emptyThread.id
-      };
+      try {
+        if(!threadId){
+          const emptyThread = await client.beta.threads.create();
+          await this.leadService.update(leadId, {thread:emptyThread.id})
+          threadId = emptyThread.id
+        };
 
-      if(Image){
-        const threadMessagesImage = await client.beta.threads.messages.create(
-          threadId,
-          {
-            "role": "user",
-            "content": [
-              {"type": "text", "text": userMessage},
-              {
-                "type": "image_url",
-                "image_url": {
-                  "url": Image,
-                  "detail": "high"
+        if(Image){
+          const threadMessagesImage = await client.beta.threads.messages.create(
+            threadId,
+            {
+              "role": "user",
+              "content": [
+                {"type": "text", "text": userMessage},
+                {
+                  "type": "image_url",
+                  "image_url": {
+                    "url": Image,
+                    "detail": "high"
+                  },
                 },
-              },
-            ],
-          }
-        )
-      }else{
-        const threadMessagesText = await client.beta.threads.messages.create(
+              ],
+            }
+          )
+        }else{
+          const threadMessagesText = await client.beta.threads.messages.create(
+            threadId,
+            { role: "user", content: userMessage }
+          );
+        };
+
+        let run = await client.beta.threads.runs.createAndPoll(
           threadId,
-          { role: "user", content: userMessage }
+          { 
+            assistant_id: assistantId,
+          }
         );
-      };
 
-      let run = await client.beta.threads.runs.createAndPoll(
-        threadId,
-        { 
-          assistant_id: assistantId,
+        if (run.status === 'completed') {
+          const messages = await client.beta.threads.messages.list(
+            run.thread_id
+          );
+          //@ts-ignore
+          const response = await  this.tractiveMessage(messages.data[0].content[0].text.value, leadId, chatId)
+          return response
+
+          // for (const message of messages.data.reverse()) {
+          //   //@ts-ignore
+          //   console.log(`${message.role} > ${message.content[0].text.value}`);
+          // }
+        } else {
+          console.log(run.status);
         }
-      );
-
-      if (run.status === 'completed') {
-        const messages = await client.beta.threads.messages.list(
-          run.thread_id
-        );
-
-        //@ts-ignore
-        const response = this.tractiveMessage(messages.data[0].content[0].text.value, leadId, chatId)
-        return response
-
-        // for (const message of messages.data.reverse()) {
-        //   //@ts-ignore
-        //   console.log(`${message.role} > ${message.content[0].text.value}`);
-        // }
-      } else {
-        console.log(run.status);
+        
+        // return run;
+      } catch (error) {
+        // console.error('Erro ao enviar mensagem:', error);
       }
-      
-      // return run;
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-    }
   };
 
   async savePicture(base64String) {
