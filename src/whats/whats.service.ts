@@ -43,6 +43,7 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
+
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
           await this.client.sendMessage(message.from, `Estou funcionando!`);
@@ -51,6 +52,7 @@ export class WhatsService {
           await this.client.sendMessage(message.from, `Estou reiniciando!`);
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
+          
         }
       };
       let lead:any
