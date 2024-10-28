@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Client, LocalAuth, Message, MessageMedia, } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
 import { LeadService } from 'src/lead/lead.service';
-import FindTimeSP from 'hooks/time';
 import OpenAI from "openai";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -45,6 +44,9 @@ export class WhatsService {
 
     this.client.on('message', async (message: Message) => {
       console.log(message.from)
+      if(message.from !== '5511932291233@c.us'){
+        return
+      }
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
@@ -71,7 +73,7 @@ export class WhatsService {
             return
           case '25':
             // doc
-            console.log('aguardando documentação')
+            // console.log('aguardando documentação')
             return
           case '26':
             // human
@@ -116,7 +118,6 @@ export class WhatsService {
     // Usar uma expressão regular para capturar o JSON em um bloco
     const jsonMatch = inputString.match(/```json\s*([\s\S]*?)```/);
     const jsonMatchKeys = inputString.match(/{([^]*?)}/);
-    console.log('chamou aqui:' ,inputString)
     // Se não encontrar JSON, retorna a string original
     if (!jsonMatch && !jsonMatchKeys) {
       return inputString;
@@ -143,54 +144,65 @@ export class WhatsService {
   };
 
   async tractiveJson(json, idLead, chatId) {
-    console.log(json)
-    json = JSON.parse(json);
+    try {
+      // Tenta fazer o parse do JSON diretamente
+      json = JSON.parse(json);
+    }catch (error) {
+          // Se houver erro, tenta adicionar uma chave de fechamento e fazer o parse novamente
+          try {
+            json = JSON.parse(`${json}}`);
+          } catch (secondError) {
+              // Caso ainda falhe, lança um erro indicando que o JSON é inválido
+              throw new Error("JSON inválido, mesmo após tentativa de correção.");
+          }
+    }
     let imagePath;
     let media;
     switch (json.type) {
       case 'confirm':
-          this.leadService.update(idLead, json.clientJson);
-          this.client.addOrRemoveLabels([''], [chatId])
-          this.client.addOrRemoveLabels(['18'], [chatId])
-          console.log('Etiqueta first contact')
-          // etiqueta first contact
-          break;
+        this.leadService.update(idLead, json.clientJson);
+        this.client.addOrRemoveLabels([''], [chatId])
+        this.client.addOrRemoveLabels(['18'], [chatId])
+        // console.log('Etiqueta first contact')
+        // etiqueta first contact
+        break;
       case 'wait':
-            this.client.addOrRemoveLabels([''], [chatId])
-            this.client.addOrRemoveLabels(['24'], [chatId])
-            // etiqueta wait
-            break;   
+        this.client.addOrRemoveLabels([''], [chatId])
+        this.client.addOrRemoveLabels(['24'], [chatId])
+        // console.log('Etiqueta wait')
+        // etiqueta wait
+        break;   
       case 'doc':
-            this.client.addOrRemoveLabels([''], [chatId])
-            this.client.addOrRemoveLabels(['25'], [chatId])
-            console.log('Etiqueta doc')
-            // etiqueta document
-            return;
+        this.client.addOrRemoveLabels([''], [chatId])
+        this.client.addOrRemoveLabels(['25'], [chatId])
+        // console.log('Etiqueta doc')
+        // etiqueta document
+        return;
       case 'tableBarueri':
         switch (json.clientJson.vehicle.toLowerCase()) {
-          case 'vuc':
+        case 'vuc':
             imagePath = `table/americanas/vuc.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             break;
-          case '3/4':
+        case '3/4':
             imagePath = `table/americanas/34.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             break;
-          case 'toco':
+        case 'toco':
             imagePath = `table/americanas/toco.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             break;
-          case 'truck':
+        case 'truck':
             imagePath = `table/americanas/truck.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             break;
-          default:
-            console.log(json.clientJson.vehicle.toLowerCase())
-            break;
+        default:
+          console.log(json.clientJson.toLowerCase())
+          break;
         }
         break
       case 'tableContagem':
@@ -247,9 +259,8 @@ export class WhatsService {
         }
         break
       default:
-          console.log('Tipo não reconhecido:', typeof(json));
-          console.log()
-          break;
+        console.log('Tipo não reconhecido:', typeof(json));
+        break;
     }
   };
   
