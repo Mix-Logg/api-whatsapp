@@ -54,7 +54,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', () => {
-      console.log('Cliente está pronto!');
+      console.log('Max está pronto!');
       this.call = true
       try{
         setInterval(this.verifyHour.bind(this), 25 * 1000);
@@ -67,10 +67,9 @@ export class WhatsService {
     this.client.on('message', async (message: Message) => {
       this.verifyGroup(message)
       
-      if(message.from == '5511932291233@c.us'){
+      if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando gatão!`);
-          console.log('mensagem enviada')
+          await this.client.sendMessage(message.from, `Estou funcionando!`);
         } catch (err) {
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
@@ -111,6 +110,7 @@ export class WhatsService {
   };
 
   async tractiveJson(json, index) {
+    json = JSON.parse(json)
     switch (json.type) {
       case 'check-in':
         const time = FindTimeSP()
@@ -119,7 +119,11 @@ export class WhatsService {
         const minutes = data.getUTCMinutes();
         this.driversWorkToday[index].check = true;
         this.driversWorkToday[index].go = json.go;
-        this.driversWorkToday[index].motion = json.motion;
+        if(json.go){
+          this.driversWorkToday[index].motion = 'a caminho';
+        }else{
+          this.driversWorkToday[index].motion = json.motion;
+        }
         if (hour === 5 && minutes >= 0 && minutes <= 15) {
           this.messageWorkConfirmationList()
         }
@@ -198,8 +202,8 @@ export class WhatsService {
   };
   
   async messageWorkConfirmation(today){
-    // const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop');
-    const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop');
+    const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
+    // const disponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
     if (Array.isArray(disponibility)) {
       const idsDrivers = [];
       const idsAuxiliaries = [];
@@ -268,8 +272,9 @@ export class WhatsService {
     const chat = await this.submitMessage(this.threadWorkListToday, 
     `Ordem: Gere uma lista de presença a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
-    // console.log('Max:', chat)
-    this.sendMessageToGroupWithNumber(`5511969945034`, chat)
+    console.log('Max:', chat)
+    // this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
+    this.sendMessageToGroupWithNumber(`5511934858607`, chat)   // DEVELOPMENT
   };
 
   async verifyGroup(message){
@@ -299,24 +304,23 @@ export class WhatsService {
     const year    = data.getFullYear();
     const today = `${day}/${month}/${year}`
     
-    // if(this.call){
-    //   this.call = false;
-    //   this.messageWorkConfirmation(today);
-    // }
-    // return
-
-    if(hour === 4 && minutes === 45 && this.call) {
+    if(hour === 4 && minutes === 1 && this.call) {
       this.call = false;
       // console.log('Deu o horario de confirma para acordar')
       this.messageWorkConfirmation(today);
       return
-    }else if (hour === 5 && minutes === 0 && !this.call){
+    }else if (hour === 5 && minutes === 1 && !this.call){
       this.call = true;
       // console.log('Deu o horario de envio da Lista')
       this.messageWorkConfirmationList()
       return
-    }else{
-      console.log('Aguardando para confirmação.')
+    }else if(hour === 10 && minutes === 1){
+      this.driversWorkToday = null
+      this.threadWorkListToday = null
+      return
+    }
+    else{
+      // console.log('Aguardando para confirmação.')
     }
   };
 
