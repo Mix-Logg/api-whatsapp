@@ -39,10 +39,11 @@ export class WhatsService {
     });
 
     this.client.on('ready', () => {
-      console.log('Cliente está pronto!');
+      console.log('Mix está pronta!');
     });
 
     this.client.on('message', async (message: Message) => {
+      console.log('message')
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
