@@ -85,9 +85,9 @@ export class WhatsService {
             return
           case '26':
             // human
-            break
-          default:
             return
+          default:
+            break
         }
       };
         const chatId = message.from
