@@ -43,10 +43,6 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
-      console.log(message.from)
-      if(message.from !== '5511932291233@c.us'){
-        return
-      }
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
@@ -67,8 +63,8 @@ export class WhatsService {
             // first contact
             break;
           case '24':
-            const response = await this.submitMessage(lead.thread, `ordem:(Diga que ele está na fila de espera) ${message.body}`, lead.id, null, message.from )
-            // await this.client.sendMessage(message.from , response);
+            const response = await this.submitMessage(lead.thread, `ordem:(Diga que ele está na fila de espera, logo entraremos em contato) ${message.body}`, lead.id, null, message.from )
+            await this.client.sendMessage(message.from , response);
             // suport
             return
           case '25':
