@@ -69,7 +69,7 @@ export class WhatsService {
       
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando!`);
+          await this.client.sendMessage(message.from, `Estou funcionando! v1.0`);
         } catch (err) {
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
@@ -273,8 +273,8 @@ export class WhatsService {
     `Ordem: Gere uma lista de presença a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     console.log('Max:', chat)
-    // this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
-    this.sendMessageToGroupWithNumber(`5511934858607`, chat)   // DEVELOPMENT
+    this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
+    // this.sendMessageToGroupWithNumber(`5511934858607`, chat)   // DEVELOPMENT
   };
 
   async verifyGroup(message){
