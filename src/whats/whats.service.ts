@@ -16,7 +16,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
+        executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
