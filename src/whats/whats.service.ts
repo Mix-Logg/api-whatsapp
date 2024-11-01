@@ -69,7 +69,7 @@ export class WhatsService {
       
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando! v1.0`);
+          await this.client.sendMessage(message.from, `Estou funcionando! v1.1`);
         } catch (err) {
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
