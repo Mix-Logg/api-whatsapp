@@ -31,7 +31,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/usr/bin/chromium-browser',
+        executablePath: '/usr/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -202,8 +202,8 @@ export class WhatsService {
   };
   
   async messageWorkConfirmation(today){
-    // const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
-    const disponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
+    const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
+    // const disponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
     if (Array.isArray(disponibility)) {
       const idsDrivers = [];
       const idsAuxiliaries = [];
@@ -273,8 +273,8 @@ export class WhatsService {
     `Ordem: Gere uma lista de presença a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     console.log('Max:', chat)
-    // this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
-    this.sendMessageToGroupWithNumber(`5511934858607`, chat)   // DEVELOPMENT
+    this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
+    // this.sendMessageToGroupWithNumber(`5511934858607`, chat)   // DEVELOPMENT
   };
 
   async verifyGroup(message){
@@ -304,24 +304,24 @@ export class WhatsService {
     const year    = data.getFullYear();
     const today = `${day}/${month}/${year}`
     
-    if(hour === 13 && minutes === 40 && this.call) {
+    if(hour === 4 && minutes === 1  && this.call) {
       this.call = false;
       // console.log('Deu o horario de confirma para acordar')
       this.messageWorkConfirmation(today);
       return
-    }else if (hour === 13 && minutes === 42 && !this.call){
+    }else if ( hour === 5 && minutes === 1 && !this.call){
       this.call = true;
       // console.log('Deu o horario de envio da Lista')
       this.messageWorkConfirmationList()
       return
-    }else if(hour === 13 && minutes === 44){
+    }else if(hour === 7 && minutes === 1 ){
       this.driversWorkToday = null
       this.threadWorkListToday = null
       return
     }
     else{
-      console.log(this.driversWorkToday)
-      console.log(this.threadWorkListToday)
+      // console.log(this.driversWorkToday)
+      // console.log(this.threadWorkListToday)
     }
   };
 
