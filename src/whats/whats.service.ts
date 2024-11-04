@@ -299,8 +299,8 @@ export class WhatsService {
     const data = new Date(time);
     const hour   = data.getUTCHours();
     const minutes = data.getUTCMinutes();
-    const day     = data.getUTCDate();
-    const month   = data.getUTCMonth() + 1;
+    const day = String(data.getUTCDate()).padStart(2, '0');
+    const month = String(data.getUTCMonth() + 1).padStart(2, '0');
     const year    = data.getFullYear();
     const today = `${day}/${month}/${year}`
     
@@ -309,20 +309,21 @@ export class WhatsService {
       // console.log('Deu o horario de confirma para acordar')
       this.messageWorkConfirmation(today);
       return
-    }else if ( hour === 5 && minutes === 1 && !this.call){
+    }
+
+    if( hour === 5 && minutes === 1 && !this.call){
       this.call = true;
       // console.log('Deu o horario de envio da Lista')
       this.messageWorkConfirmationList()
       return
-    }else if(hour === 7 && minutes === 1 ){
+    }
+    
+    if(hour === 7 && minutes === 1 ){
       this.driversWorkToday = null
       this.threadWorkListToday = null
       return
     }
-    else{
-      // console.log(this.driversWorkToday)
-      // console.log(this.threadWorkListToday)
-    }
+    
   };
 
 }
