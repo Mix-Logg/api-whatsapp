@@ -46,7 +46,7 @@ export class WhatsService {
 
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando! v1.1`);
+          await this.client.sendMessage(message.from, `Estou em dev! v1.1`);
           return
         } catch (err) {
           await this.client.sendMessage(message.from, `Estou reiniciando!`);
@@ -55,6 +55,9 @@ export class WhatsService {
           
         }
       };
+      if(message.from == '5511932291233@c.us'){
+        return
+      }
       let lead:any
       const hasRegister = await this.leadService.findOnePhone(message.id.remote);
       const haveLabel   = await this.client.getChatLabels(message.from);
