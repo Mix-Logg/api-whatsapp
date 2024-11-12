@@ -46,7 +46,7 @@ export class WhatsService {
 
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou em dev! v1.1`);
+          await this.client.sendMessage(message.from, `Estou em Dev! v1.1`);
           return
         } catch (err) {
           await this.client.sendMessage(message.from, `Estou reiniciando!`);
