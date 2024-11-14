@@ -16,7 +16,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/snap/bin/chromium',
+        executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -46,7 +46,7 @@ export class WhatsService {
 
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou em Dev! v1.1`);
+          await this.client.sendMessage(message.from, `Estou funcicando Black Friday! v1.3`);
           return
         } catch (err) {
           await this.client.sendMessage(message.from, `Estou reiniciando!`);
