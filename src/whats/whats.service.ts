@@ -16,7 +16,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/snap/bin/chromium',
+        // executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -55,7 +55,7 @@ export class WhatsService {
           
         }
       };
-      if(message.from == '5511932291233@c.us'){
+      if(message.from !== '5511932291233@c.us'){
         return
       }
       let lead:any
@@ -251,16 +251,18 @@ export class WhatsService {
       case 'tableCajamar':
         switch (json.clientJson.vehicle.toLowerCase()) {
           case 'fiorino':
-            imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
+            // imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
+            // black
+            imagePath =  `table/fastshop/fiorino-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             break;
           case 'hr':
-            imagePath =  `table/fastshop/cajamar-hr.jpeg`;
+            imagePath =  `table/fastshop/hr-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
           case 'vuc':
-            imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
+            imagePath =  `table/fastshop/vuc-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             break;
@@ -269,8 +271,88 @@ export class WhatsService {
             break;
         }
         break
+      case 'tablebarueri':
+          switch (json.clientJson.vehicle.toLowerCase()) {
+          case 'vuc':
+              imagePath = `table/americanas/vuc.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+          case '3/4':
+              imagePath = `table/americanas/34.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+          case 'toco':
+              imagePath = `table/americanas/toco.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+          case 'truck':
+              imagePath = `table/americanas/truck.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+          default:
+            console.log(json.clientJson.toLowerCase())
+            break;
+          }
+          break
+      case 'tablecontagem':
+          switch (json.clientJson.vehicle.toLowerCase()) {
+            case 'hr':
+              imagePath = `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+            case 'vuc':
+              imagePath = `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+            default:
+              console.log(json.clientJson.vehicle.toLowerCase())
+              break;
+          }
+          break
+      case 'tableuberlandia':
+          switch (json.clientJson.vehicle.toLowerCase()) {
+            case 'hr':
+              imagePath = `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+            case 'vuc':
+              imagePath = `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+            default:
+              console.log(json.clientJson.vehicle.toLowerCase())
+              break;
+          }
+          break
+      case 'tablecajamar':
+          switch (json.clientJson.vehicle.toLowerCase()) {
+            case 'fiorino':
+              imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+            case 'hr':
+              imagePath =  `table/fastshop/cajamar-hr.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+            case 'vuc':
+              imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
+              media = MessageMedia.fromFilePath(imagePath);
+              await this.client.sendMessage(chatId, media);
+              break;
+            default:
+              console.log(json.clientJson.vehicle.toLowerCase())
+              break;
+          }
+          break
       default:
-        console.log('Tipo não reconhecido:', typeof(json));
+        console.log('Tipo não reconhecido:', console.log(json));
         break;
     }
   };
