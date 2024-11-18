@@ -20,7 +20,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/usr/bin/chromium-browser',
+        executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -43,7 +43,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', () => {
-      console.log('Cliente está pronto!');
+      console.log('Mix está pronta! (Black Friday)');
     });
 
     this.client.on('message', async (message: Message) => {
@@ -254,7 +254,7 @@ export class WhatsService {
 
   private async sendFirstContactResponse(chatId: string){
     try {
-      const presentation = `💁🏾‍♀️ *Olá, Seja bem vindo ao nosso atendimento!*\n *Eu sou a Mix a sua atendente!*  \n\n*Nós somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixservlog.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
+      const presentation = `💁🏾‍♀️ *Olá, Seja bem vindo ao nosso atendimento!*\n *Eu sou a Mix a sua atendente!*  \n\n*Nós somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
       await this.client.sendMessage(chatId, presentation);
       await this.client.sendMessage(chatId, "🧡 Qual é o seu nome?");
     } catch (err) {
@@ -506,7 +506,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)*\n🤑 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💸 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            const imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
+            const imagePath =  `table/fastshop/black/fiorino-black.jpeg`;
             const media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
@@ -579,7 +579,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/cajamar-hr.jpeg`;
+            imagePath =  `table/fastshop/black/hr-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
@@ -634,7 +634,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
+            imagePath =  `table/fastshop/black/vuc-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
@@ -1197,5 +1197,4 @@ export class WhatsService {
     }
   };
   
-
 }
