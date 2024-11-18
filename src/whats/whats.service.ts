@@ -55,9 +55,9 @@ export class WhatsService {
     });
 
     this.client.on('message', async (message: Message) => {
-      if(message.id.remote != '5511932291233@c.us'){
-        return
-      }
+      // if(message.id.remote != '5511932291233@c.us'){
+      //   return
+      // }
       const haveLabel = await this.client.getChatLabels(message.from);
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
