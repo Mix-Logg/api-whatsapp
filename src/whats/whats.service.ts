@@ -42,14 +42,22 @@ export class WhatsService {
       qrcode.generate(qr, {small: true});
     });
 
-    this.client.on('ready', () => {
-      console.log('Mix está pronta! (Black Friday)');
+    this.client.on('ready', async () => {
+      console.log('Mix está pronta! (Black Friday) 1.0v');
+      const chats = await this.client.getChats();
+      const unreadChats = chats.filter(chat => chat.unreadCount > 0);
+      if (unreadChats.length > 0) {
+        unreadChats.forEach(async chat => {
+          await this.client.sendMessage(chat.id._serialized, `Desculpe a demora! Podemos continuar o atendimento? Vou fazer algumas perguntas, tudo bem?`);
+        });
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      } 
     });
 
     this.client.on('message', async (message: Message) => {
-      // if(message.id.remote != '5511932291233@c.us'){
-      //   return
-      // }
+      if(message.id.remote != '5511932291233@c.us'){
+        return
+      }
       const haveLabel = await this.client.getChatLabels(message.from);
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
