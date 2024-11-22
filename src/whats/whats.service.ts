@@ -1155,6 +1155,7 @@ export class WhatsService {
       return
     }
     const offerMessage = await this.generateOfferMessage(order);
+    console.log('mensagem oferta: ',offerMessage)
     this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
     this.client.sendMessage(chatId, offerMessage)
     this.client.sendMessage(chatId, `*AGORA VAI COMEÇA A BAGAÇEIRA*`)
