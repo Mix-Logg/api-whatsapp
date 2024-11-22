@@ -7,6 +7,7 @@ import FindTimeSP from 'hooks/time';
 type ConversationStepOne = 'INITIAL_CONTACT' | 'GET_NAME' | 
 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'GET_EMAIL' | 'COMPLETE' | 'CONFIRMATION' | 'TRACKER';
 type ConversationStepTwo = 'INVITATION' | 'PROPOSAL' | 'PRESENTATION' | 'DECISION_PROPOSAL' | 'APPROVED' | 'RECUSE' | 'REGION_PROPOSAL' ;
+const usersCheks = {};
 @Injectable()
 export class WhatsService {
   private client: Client;
@@ -43,44 +44,40 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 1.0v');
-      const chats = await this.client.getChats();
-      const unreadChats = chats.filter(chat => chat.unreadCount > 0);
-      if (unreadChats.length > 0) {
-        unreadChats.forEach(async chat => {
-          await this.client.sendMessage(chat.id._serialized, `Desculpe a demora! Podemos continuar o atendimento? Vou fazer algumas perguntas, tudo bem?`);
-        });
-        await new Promise(resolve => setTimeout(resolve, 10000));
-      } 
+      console.log('Mix está pronta! (Black Friday) 1.1v');
+      // this.resolvingUnreadMessage(); // Mensagem para os não lidos
+      // this.removeAllLabels(); // Remover todas as etiquetas
     });
 
     this.client.on('message', async (message: Message) => {
-      // if(message.id.remote != '5511932291233@c.us'){
-      //   return
-      // }
-      const haveLabel = await this.client.getChatLabels(message.from);
-      // const allLabel  = await this.client.getLabels();
-      // console.log(allLabel)
-      if(haveLabel.length > 0){
-        switch (haveLabel[0].id) {
-          case '18':
-            this.handleIncomingMessageTwo(message)
-            return;
-          case '24':
-            this.sendWaitService(message.id.remote)
-            // suporte
-            return
-          case '25':
-            // doc
-            return
-          case '26':
-            // humanizado
-            return
-          default:
-            return
-        }
+      if(message.id.remote == '5511932291233@c.us'){
+        return
       }
-      await this.handleIncomingMessage(message);
+      this.verifyCadaster(message)
+      if (usersCheks[message.from]?.isVerified) {
+        const haveLabel = await this.client.getChatLabels(message.from);
+        
+        // const allLabel  = await this.client.getLabels();
+        // console.log(allLabel)
+        if(haveLabel.length > 0){
+          switch (haveLabel[0].id) {
+            case '18':
+              this.handleIncomingMessageTwo(message)
+              return;
+            case '24':
+              this.sendWaitService(message.id.remote)
+              // suporte
+              return
+            case '25':
+              // doc
+              return
+            case '26':
+              // humanizado
+              return
+          }
+        }
+        await this.handleIncomingMessage(message);
+      }
     });
 
     this.client.initialize();
@@ -165,6 +162,17 @@ export class WhatsService {
     }
   };
 
+  async resolvingUnreadMessage(){
+    const chats = await this.client.getChats();
+     const unreadChats = chats.filter(chat => chat.unreadCount > 0);
+     if (unreadChats.length > 0) {
+        unreadChats.forEach(async chat => {
+        await this.client.sendMessage(chat.id._serialized, `Desculpe a demora! Podemos continuar o atendimento? Vou fazer algumas perguntas, tudo bem?`);
+      });
+      await new Promise(resolve => setTimeout(resolve, 10000));
+    } 
+  };
+
   // ################ PASSIVE (no label) ###################### \\
 
   private conversationState: { [chatId: string]: ConversationStepOne } = {};
@@ -212,6 +220,7 @@ export class WhatsService {
         if (message.body.toLowerCase() === 'sim') {
           await this.finalizeProcess(chatId);
         } else if (message.body.toLowerCase() === 'não' || message.body.toLowerCase() === 'nao' ) {       
+          console.log('caiu aqui (não)')
           await this.resetProcess(chatId);
         } else {
           await this.client.sendMessage(chatId, "Resposta não reconhecida. Por favor, responda com 'Sim' ou 'Não'.");
@@ -247,14 +256,19 @@ export class WhatsService {
       label      :'yellow',
       create_at  :time
     }
-    const response = await this.leadService.create(params);
+    const lead = await this.leadService.findOnePhone(phone)
+    if(lead.status == 200){
+      const response = await this.leadService.update(lead.result.id ,params);
+    }else{
+      const response = await this.leadService.create(params);
+    }
     await this.sendInvitationApp(chatId);
     await this.sendProposalOption(chatId)
     delete this.userData[chatId];
   };
   
   private async resetProcess(chatId: string) {
-    await this.client.sendMessage(chatId, "Errei 🤦🏾‍♀️ vamos começar de novo\n Qual é o seu nome? 🤐");
+    await this.client.sendMessage(chatId, "Ok 💁🏾‍♀️ vamos atualizar os dados\n Qual é o seu nome? 🤐");
     await this.updateConversationStateOne(chatId, 'GET_NAME');
     // Opcional: Limpar os dados do usuário se necessário
     delete this.userData[chatId];
@@ -479,6 +493,8 @@ export class WhatsService {
     const response = await this.leadService.findOnePhone(chatId.replace(/@c\.us$/, ''))
     let sendMessage:string;
     let imagePath
+    let audioApresentationPath
+    let mediaApresentation
     let media
     switch (response.result.typeVehicle.toLowerCase()) {
       case 'moto':
@@ -644,7 +660,10 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             imagePath =  `table/fastshop/black/vuc-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
+            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
             await this.client.sendMessage(chatId, media);
+            await this.client.sendMessage(chatId, mediaApresentation);
             sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
@@ -1045,6 +1064,62 @@ export class WhatsService {
 
   private async sendWaitService(chatId: string){
     await this.client.sendMessage(chatId, `*você já está na lista de atendimento* 📋 \n\n🕙 aguarde nossos atendentes já entrarão em contato`);
+  };
+
+  // Utils
+
+  private async verifyCadaster(message:Message){
+   const chatId = message.from;
+    if (usersCheks[chatId]?.isVerified) {
+      // console.log("Usuário já verificado, continuando o fluxo...");
+      return; // Não executa a verificação novamente
+    }
+
+   const number = chatId.replace('@c.us', '');
+   const lead = await this.leadService.findOnePhone(number)
+   console.log(lead)
+   if(lead.status == 200){
+    this.userData[chatId] = {
+      name: lead.result.name ,
+      vehicle: lead.result.typeVehicle, 
+      region: lead.result.region,
+      measure: lead.result.measure,
+      email: lead.result.email,
+      tracker: lead.result.tracker,
+    };
+    if(!lead.result.typeVehicle || !lead.result.region || !lead.result.name){
+      await this.handleIncomingMessage(message);
+    }else{
+      this.client.addOrRemoveLabels([''], [chatId])
+      await this.updateConversationStateOne(chatId, 'CONFIRMATION');
+      const confirmationMessage = `✍️ *Antes de apresentar as operações*\n📋📦 *As suas informações continuam correta?* \n\n😁 *Nome:* ${lead.result.name}\n📧 *Email:* ${lead.result.email} \n🚚 *Veículo:* ${lead.result.typeVehicle}\n📡 *Rastreador:* ${lead.result.tracker} \n📍 *Região:* ${lead.result.region}\n📐 *Medida:* ${lead.result.measure} \n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
+      setTimeout(() => {
+        this.client.sendMessage(chatId, confirmationMessage)
+      }, 10000)
+    }
+    usersCheks[chatId] = { isVerified: true}
+    setTimeout(() => {
+      // console.log(`Resetando estado do usuário ${chatId}`);
+      delete usersCheks[chatId];
+    // }, 60000); // 1 minuto de inatividade
+    }, 24 * 60 * 60 * 1000); // 24 horas em milissegundos
+    return
+   }
+   usersCheks[chatId] = { isVerified: true }
+   return await this.handleIncomingMessage(message);
+  };
+
+  private async removeAllLabels(){
+    const leads = await this.client.getContacts();
+
+    for (const lead of leads) {
+      const chatId = lead.id._serialized;
+      // Supondo que as etiquetas estão armazenadas em uma propriedade chamada 'labels'
+      if (lead.labels && lead.labels.length > 0) {
+          this.client.addOrRemoveLabels([''], [chatId])
+          console.log(`Etiquetas removidas do lead: ${lead.name}`);
+      }
+    }
   };
 
   // Statistics
