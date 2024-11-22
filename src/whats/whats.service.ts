@@ -45,7 +45,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 1.3v');
+      console.log('Mix está pronta! (Black Friday) 1.4v');
       // this.resolvingUnreadMessage(); // Mensagem para os não lidos
       // this.removeAllLabels(); // Remover todas as etiquetas
     });
@@ -53,7 +53,7 @@ export class WhatsService {
     this.client.on('message', async (message: Message) => {
       if(message.id.remote === '5511932291233@c.us'){
         if(message.body == 'test' || message.body == 'Test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday)')
+          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.4v)')
         }
         return
       }
