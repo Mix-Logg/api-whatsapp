@@ -22,7 +22,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/snap/bin/chromium',
+        // executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -1155,9 +1155,8 @@ export class WhatsService {
       return
     }
     const offerMessage = await this.generateOfferMessage(order);
-    console.log('mensagem oferta: ',offerMessage)
-    this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
     this.client.sendMessage(chatId, offerMessage)
+    this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
     this.client.sendMessage(chatId, `*AGORA VAI COMEÇA A BAGAÇEIRA*`)
     // Regex para capturar a parte dos carros
     const carsMatch = message.body.match(/carros:([\w,]+)/);
@@ -1379,40 +1378,64 @@ export class WhatsService {
 
   // IA
 
-  async generateOfferMessage(order) {
-    const api_key = process.env.KEY_IA
-    const assistantId = process.env.KEY_MOX
-
-    const client = new OpenAI({ apiKey: api_key }); // Substitua por sua chave da API
+  async generateOfferMessage(order: string): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      const api_key = process.env.KEY_IA;
+      const assistantId = process.env.KEY_MOX;
+  
+      const client = new OpenAI({ apiKey: api_key });
+  
       try {
+        // Criando uma nova thread
         const emptyThread = await client.beta.threads.create();
-        const threadId = emptyThread.id
-
+        if (!emptyThread || !emptyThread.id) {
+          console.error('Erro ao criar a thread');
+          return reject('Erro ao criar a thread'); // Rejeita a Promise se a thread não for criada
+        }
+  
+        const threadId = emptyThread.id;
+  
+        // Criando uma mensagem na thread
         const threadMessagesText = await client.beta.threads.messages.create(
           threadId,
           { role: "user", content: order }
         );
-
+  
+        // Executando e esperando a conclusão da thread
         let run = await client.beta.threads.runs.createAndPoll(
           threadId,
-          { 
-            assistant_id: assistantId,
-          }
+          { assistant_id: assistantId }
         );
-
+  
         if (run.status === 'completed') {
-          const messages = await client.beta.threads.messages.list(
-            run.thread_id
-          );
-         //@ts-ignore
-          return messages.data[0].content[0].text.value
-
+          // Listando as mensagens da thread após a execução
+          const messages = await client.beta.threads.messages.list(run.thread_id);
+          console.log('Mensagens recebidas:', messages.data);
+  
+          // Verificando se a estrutura das mensagens está correta
+          if (messages.data && messages.data[0] && messages.data[0].content) {
+            //@ts-ignore
+            const messageContent = messages.data[0].content[0].text?.value;
+            if (messageContent) {
+              return resolve(messageContent); // Resolve a Promise com o conteúdo da mensagem
+            } else {
+              console.error('Erro: Conteúdo da mensagem não encontrado');
+              return reject('Conteúdo da mensagem não encontrado');
+            }
+          } else {
+            console.error('Erro: Dados da mensagem não encontrados');
+            return reject('Dados da mensagem não encontrados');
+          }
         } else {
-          console.log(run.status);
+          console.log(`Status do run: ${run.status}`);
+          return reject(`Status do run não é 'completed': ${run.status}`); // Rejeita se o status não for 'completed'
         }
       } catch (error) {
-        // console.error('Erro ao enviar mensagem:', error);
+        console.error('Erro ao enviar mensagem:', error);
+        return reject(error); // Rejeita a Promise se ocorrer erro
       }
+    });
   };
+  
   
 }
