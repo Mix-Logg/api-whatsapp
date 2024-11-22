@@ -44,13 +44,14 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 1.1v');
+      console.log('Mix está pronta! (Black Friday) 1.2v');
       // this.resolvingUnreadMessage(); // Mensagem para os não lidos
       // this.removeAllLabels(); // Remover todas as etiquetas
     });
 
     this.client.on('message', async (message: Message) => {
-      if(message.id.remote == '5511932291233@c.us'){
+      if(message.id.remote === '5511932291233@c.us'){
+        this.client.sendMessage(message.from, 'Estou funcionando!')
         return
       }
       this.verifyCadaster(message)
@@ -446,7 +447,7 @@ export class WhatsService {
           await this.client.sendMessage(chatId, `atualmente não temos operações para carro 😞 \n\n mas assim que abri uma oportunidade, entraremos em contato 😀`);
           return
         case 'fiorino':
-          message = `🛻 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP \n\n*0-* Falar com atendente`
+          message = `🛻 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY* \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
@@ -456,12 +457,12 @@ export class WhatsService {
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'hr':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Uberlândia/MG\n*3-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*\n*2-* Uberlândia/MG\n*3-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'vuc':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Barueri/SP\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*\n*2-* Barueri/SP\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return;
@@ -492,9 +493,11 @@ export class WhatsService {
   private async sendPressentationOrHelp(chatId: string, message:string){
     const response = await this.leadService.findOnePhone(chatId.replace(/@c\.us$/, ''))
     let sendMessage:string;
-    let imagePath
+    let audioQuestionPath
+    let mediaQuestion 
     let audioApresentationPath
     let mediaApresentation
+    let imagePath
     let media
     switch (response.result.typeVehicle.toLowerCase()) {
       case 'moto':
@@ -530,9 +533,15 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)*\n🤑 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💸 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            const imagePath =  `table/fastshop/black/fiorino-black.jpeg`;
-            const media = MessageMedia.fromFilePath(imagePath);
+            imagePath =  `table/fastshop/black/fiorino-black.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
             await this.client.sendMessage(chatId, media);
+            await this.client.sendMessage(chatId, mediaApresentation);
+            await this.client.sendMessage(chatId, mediaQuestion);
             sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
@@ -605,7 +614,13 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             imagePath =  `table/fastshop/black/hr-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
+            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
             await this.client.sendMessage(chatId, media);
+            await this.client.sendMessage(chatId, mediaApresentation);
+            await this.client.sendMessage(chatId, mediaQuestion);
             sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
@@ -662,8 +677,11 @@ export class WhatsService {
             media = MessageMedia.fromFilePath(imagePath);
             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
             await this.client.sendMessage(chatId, media);
             await this.client.sendMessage(chatId, mediaApresentation);
+            await this.client.sendMessage(chatId, mediaQuestion);
             sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
@@ -1091,9 +1109,9 @@ export class WhatsService {
       await this.handleIncomingMessage(message);
     }else{
       this.client.addOrRemoveLabels([''], [chatId])
-      await this.updateConversationStateOne(chatId, 'CONFIRMATION');
       const confirmationMessage = `✍️ *Antes de apresentar as operações*\n📋📦 *As suas informações continuam correta?* \n\n😁 *Nome:* ${lead.result.name}\n📧 *Email:* ${lead.result.email} \n🚚 *Veículo:* ${lead.result.typeVehicle}\n📡 *Rastreador:* ${lead.result.tracker} \n📍 *Região:* ${lead.result.region}\n📐 *Medida:* ${lead.result.measure} \n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
       setTimeout(() => {
+        this.updateConversationStateOne(chatId, 'CONFIRMATION');
         this.client.sendMessage(chatId, confirmationMessage)
       }, 10000)
     }
