@@ -3,6 +3,7 @@ import { Client, LocalAuth, Message, MessageMedia, } from 'whatsapp-web.js'
 import * as qrcode from 'qrcode-terminal';
 import { LeadService } from 'src/lead/lead.service';
 import FindTimeSP from 'hooks/time';
+import OpenAI from "openai";
 
 type ConversationStepOne = 'INITIAL_CONTACT' | 'GET_NAME' | 
 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'GET_EMAIL' | 'COMPLETE' | 'CONFIRMATION' | 'TRACKER';
@@ -56,10 +57,18 @@ export class WhatsService {
         }
         return
       }
+      if(message.id.remote === '5511947557554@c.us'){
+        this.sendProposal(message)
+        return
+      }
+
+      // LOCK 🔒
+      // if(message.id.remote !== '5511932291233@c.us'){
+      //   return
+      // }
       this.verifyCadaster(message)
       if (usersCheks[message.from]?.isVerified) {
         const haveLabel = await this.client.getChatLabels(message.from);
-        
         // const allLabel  = await this.client.getLabels();
         // console.log(allLabel)
         if(haveLabel.length > 0){
@@ -76,6 +85,9 @@ export class WhatsService {
               return
             case '26':
               // humanizado
+              return
+            case '32':
+              // operação-ativo
               return
           }
         }
@@ -464,12 +476,12 @@ export class WhatsService {
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'vuc':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*\n*2-* Barueri/SP\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*\n*2-* Barueri/SP *TABELA BLACK FRIDAY*\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return;
         case '3/4':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Barueri/SP\n*2-* Contagem/MG\n*3-* Uberlândia/MG\n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Barueri/SP *TABELA BLACK FRIDAY*\n*2-* Contagem/MG\n*3-* Uberlândia/MG\n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
@@ -693,7 +705,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/americanas/vuc.jpeg`;
+            imagePath =  `table/americanas/black/34-vuc-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
@@ -746,7 +758,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/americanas/34.jpeg`;
+            imagePath =  `table/americanas/black/34-vuc-black.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
@@ -1129,6 +1141,70 @@ export class WhatsService {
    return await this.handleIncomingMessage(message);
   };
 
+  private async sendProposal(message:Message){
+    const chatId = message.from;
+    let order:string
+    let cars : any
+    let typeVehicleCount = {};
+    let activeCount = 0;
+    let bugs = 0
+    const ordemMatch = message.body.match(/ordem:"([^"]+)"/);
+    if (ordemMatch) {
+      order = ordemMatch[1]; 
+    }else{
+      return
+    }
+    const offerMessage = await this.generateOfferMessage(order);
+    this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
+    this.client.sendMessage(chatId, offerMessage)
+    this.client.sendMessage(chatId, `*AGORA VAI COMEÇA A BAGAÇEIRA*`)
+    // Regex para capturar a parte dos carros
+    const carsMatch = message.body.match(/carros:([\w,]+)/);
+    if (carsMatch) {
+      const cars = carsMatch[1].split(',');
+      if (cars.includes("todos")) {
+       const allLeads = await this.leadService.findAll();
+        for (const lead of allLeads){
+          const phoneRegex = /^55\d{11}$/;
+          if (!phoneRegex.test(lead.phone)) {
+            bugs++;
+            continue;
+          };
+
+          const labels = await this.client.getChatLabels(`${lead.phone}@c.us`);
+          if (labels.some(label => label.id === '32')) {
+            activeCount++;
+            continue;
+          };
+          
+          const typeVehicle = lead.typeVehicle;
+          if (typeVehicle) {
+            // Incrementa o contador do tipo de veículo
+            typeVehicleCount[typeVehicle] = (typeVehicleCount[typeVehicle] || 0) + 1;
+          }
+
+          await this.sendMessageWithDelay(lead.phone, offerMessage, 5000);
+
+        }
+        this.client.sendMessage(chatId, `*BAGAÇEIRA FEITA*`)
+      } else {
+        // destinatarios = cars; // Enviar para os carros específicos
+      }
+    }else{
+      return
+    }
+  };
+
+   sendMessageWithDelay(phone, message, delay) {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        this.client.sendMessage(`${phone}@c.us`, message);
+        // console.log('Mensagem enviada para:', phone);
+        resolve();  // Resolvemos a promise após o envio
+      }, delay);
+    });
+  };
+
   private async removeAllLabels(){
     const leads = await this.client.getContacts();
 
@@ -1298,6 +1374,44 @@ export class WhatsService {
     } catch (error) {
       console.error("Erro ao obter estatísticas por região:", error);
     }
+  };
+
+  // IA
+
+  async generateOfferMessage(order) {
+    const api_key = process.env.KEY_IA
+    const assistantId = process.env.KEY_MOX
+
+    const client = new OpenAI({ apiKey: api_key }); // Substitua por sua chave da API
+      try {
+        const emptyThread = await client.beta.threads.create();
+        const threadId = emptyThread.id
+
+        const threadMessagesText = await client.beta.threads.messages.create(
+          threadId,
+          { role: "user", content: order }
+        );
+
+        let run = await client.beta.threads.runs.createAndPoll(
+          threadId,
+          { 
+            assistant_id: assistantId,
+          }
+        );
+
+        if (run.status === 'completed') {
+          const messages = await client.beta.threads.messages.list(
+            run.thread_id
+          );
+         //@ts-ignore
+          return messages.data[0].content[0].text.value
+
+        } else {
+          console.log(run.status);
+        }
+      } catch (error) {
+        // console.error('Erro ao enviar mensagem:', error);
+      }
   };
   
 }

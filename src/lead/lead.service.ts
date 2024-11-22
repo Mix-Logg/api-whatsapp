@@ -27,8 +27,9 @@ export class LeadService {
     }
   };
 
-  findAll() {
-    return this.leadRepository.find();
+  async findAll() {
+    const response = await this.leadRepository.find();
+    return response
   };
 
   async findOne(id: number) {
