@@ -22,7 +22,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/snap/bin/chromium',
+        executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
