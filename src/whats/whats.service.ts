@@ -45,14 +45,14 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 1.7v');
+      console.log('Mix está pronta! (Black Friday) 1.8v');
     });
 
     this.client.on('message', async (message: Message) => {
       console.log(message.id.remote)
       if(message.id.remote === '5511932291233@c.us'){
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.7v)')
+          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.8v)')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -1172,7 +1172,7 @@ export class WhatsService {
     const offerMessage = await this.generateOfferMessage(order);
 
     this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
-    this.client.sendMessage(chatId, offerMessage)
+    await this.sendMessageWithDelay(chatId, offerMessage, 1000);
     // Regex para capturar a parte dos carros
     const carsMatch = message.body.match(/carros:([\w,]+)/);
     if (carsMatch) {
@@ -1213,8 +1213,28 @@ export class WhatsService {
 
    private sendMessageWithDelay(phone, message, delay) {
     return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        this.client.sendMessage(`${phone}@c.us`, message);
+      const chatId = `${phone}@c.us`
+      setTimeout( async () => {
+        let imagePathAmericanas =  `table/americanas/black/34-vuc-black.jpeg`;
+        let mediaAmericanas = MessageMedia.fromFilePath(imagePathAmericanas);
+        let imagePathFast =  `table/fastshop/black/vuc-black.jpeg`;
+        let media = MessageMedia.fromFilePath(imagePathFast);
+        let audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+        let mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+        let audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+        let mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+        let imagePathHrFast =  `table/fastshop/black/hr-black.jpeg`;
+        let mediaHR = MessageMedia.fromFilePath(imagePathHrFast);
+        
+        
+        await this.client.sendMessage(chatId, '*FAST SHOP*');
+        await this.client.sendMessage(chatId, mediaHR);
+        await this.client.sendMessage(chatId, media);
+        await this.client.sendMessage(chatId, mediaApresentation);
+        await this.client.sendMessage(chatId, mediaQuestion);
+        await this.client.sendMessage(chatId, '*AMERICANAS*');
+        await this.client.sendMessage(chatId, mediaAmericanas);
+        this.client.sendMessage(chatId, message);
         // console.log('Mensagem enviada para:', phone);
         resolve();  // Resolvemos a promise após o envio
       }, delay);
@@ -1222,20 +1242,27 @@ export class WhatsService {
   };
 
   private async removeAllLabels(){
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const leads = await this.client.getContacts();
-
+    console.log(leads.length)
     for (const lead of leads) {
       const chatId = lead.id._serialized;
       // Supondo que as etiquetas estão armazenadas em uma propriedade chamada 'labels'
       if (lead.labels && lead.labels.length > 0) {
         const labels = await this.client.getChatLabels(chatId);
         
-        if (labels.some(label => label.id === '32')) {
+        if (labels.some(label => label.id === '32' || label.id === '24' || label.id === '26')) {
           continue
         }
 
-        this.client.addOrRemoveLabels([''], [chatId])
-        console.log(`Etiquetas removidas do lead: ${chatId}`);
+        try{
+          await sleep(3000);
+          await this.client.addOrRemoveLabels([], [chatId])
+          await sleep(5000);
+          await this.client.addOrRemoveLabels([0], [chatId])
+        } catch(e){
+          console.log(e)
+        }
       }
     }
   };
