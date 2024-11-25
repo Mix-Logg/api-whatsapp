@@ -15,7 +15,6 @@ export class WhatsService {
 
   constructor(
     private leadService:LeadService,  
-    
   ){}
 
   onModuleInit() {
@@ -45,14 +44,18 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 1.8v');
+      console.log('Mix está pronta! (Black Friday) 1.9v');
     });
 
     this.client.on('message', async (message: Message) => {
       console.log(message.id.remote)
       if(message.id.remote === '5511932291233@c.us'){
+
+        // this.sendProposal(message)
+        // return
+
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.8v)')
+          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.9v)')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -66,6 +69,7 @@ export class WhatsService {
           const messageSorry = await this.generateOfferMessage('Você está funcionando?');
           this.client.sendMessage(message.from, messageSorry)
         }
+
         return
       }
       
@@ -1172,7 +1176,7 @@ export class WhatsService {
     const offerMessage = await this.generateOfferMessage(order);
 
     this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
-    await this.sendMessageWithDelay(chatId, offerMessage, 1000);
+    await this.sendMessageWithDelay(chatId, offerMessage, 1000, chatId);
     // Regex para capturar a parte dos carros
     const carsMatch = message.body.match(/carros:([\w,]+)/);
     if (carsMatch) {
@@ -1211,9 +1215,9 @@ export class WhatsService {
     }
   };
 
-   private sendMessageWithDelay(phone, message, delay) {
+   private sendMessageWithDelay(phone,message, delay, phoneTester = null) {
     return new Promise<void>((resolve) => {
-      const chatId = `${phone}@c.us`
+      const chatId = phoneTester ? phoneTester : `${phone}@c.us`
       setTimeout( async () => {
         let imagePathAmericanas =  `table/americanas/black/34-vuc-black.jpeg`;
         let mediaAmericanas = MessageMedia.fromFilePath(imagePathAmericanas);
