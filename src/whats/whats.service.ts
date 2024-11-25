@@ -45,20 +45,31 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 1.6v');
-      // this.resolvingUnreadMessage(); // Mensagem para os não lidos
-      // this.removeAllLabels(); // Remover todas as etiquetas
+      console.log('Mix está pronta! (Black Friday) 1.7v');
     });
 
     this.client.on('message', async (message: Message) => {
+      console.log(message.id.remote)
       if(message.id.remote === '5511932291233@c.us'){
-        if(message.body == 'test' || message.body == 'Test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.6v)')
+        if(message.body.toLocaleLowerCase() == 'test'){
+          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 1.7v)')
+        }
+        if(message.body == 'unread'){
+          this.resolvingUnreadMessage(); // Mensagem para os não lidos
+          this.client.sendMessage(message.from, 'Enviando mensagem para não lidos!')
+        }
+        if(message.body.toLocaleLowerCase() == 'removelabel'){
+          this.removeAllLabels(); // Remover todas as etiquetas
+          this.client.sendMessage(message.from, 'removendo labels')
+        }
+        if(message.body.toLocaleLowerCase() == 'ia'){
+          const messageSorry = await this.generateOfferMessage('Você está funcionando?');
+          this.client.sendMessage(message.from, messageSorry)
         }
         return
       }
+      
       if(message.id.remote === '5511947557554@c.us'){
-        console.log('startando')
         this.sendProposal(message)
         return
       }
@@ -180,10 +191,11 @@ export class WhatsService {
 
   async resolvingUnreadMessage(){
     const chats = await this.client.getChats();
-     const unreadChats = chats.filter(chat => chat.unreadCount > 0);
-     if (unreadChats.length > 0) {
-        unreadChats.forEach(async chat => {
-        await this.client.sendMessage(chat.id._serialized, `Desculpe a demora! Podemos continuar o atendimento? Vou fazer algumas perguntas, tudo bem?`);
+    const unreadChats = chats.filter(chat => chat.unreadCount > 0);
+    const messageSorry = await this.generateOfferMessage('Se desculpe pela demora, e pergunte se está disposto a continuar o atendimento (mensagem curta)');
+    if (unreadChats.length > 0) {
+      unreadChats.forEach(async chat => {
+        await this.client.sendMessage(chat.id._serialized, messageSorry);
       });
       await new Promise(resolve => setTimeout(resolve, 10000));
     } 
@@ -1153,11 +1165,12 @@ export class WhatsService {
     if (ordemMatch) {
       order = ordemMatch[1]; 
     }else{
+      this.client.sendMessage(chatId, '*Match errado:* erro na ordem')
       return
     }
-    // const offerMessage = await this.generateOfferMessage(order);
-    const offerMessage = `*🚚💥 BLACK FRIDAY MIX CHEGOU PRA VALORIZAR VOCÊ, MOTORISTA! 💥🚚*\n\nÉ isso mesmo! Temos uma tabela novinha em folha, com pagamentos TURBINADOS só pra você nessa Black Friday! 🎉💸\n\nMas atenção: AS VAGAS SÃO LIMITADAS! Quer garantir essa oportunidade exclusiva? 🤔 Só confirmamos alguns dados e já apresentamos todas as novidades!\n\nPronto pra acelerar com a gente? 🚀💪`
-    this.client.sendMessage(chatId, offerMessage)
+
+    const offerMessage = await this.generateOfferMessage(order);
+
     this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
     this.client.sendMessage(chatId, offerMessage)
     // Regex para capturar a parte dos carros
@@ -1193,11 +1206,12 @@ export class WhatsService {
         // destinatarios = cars; // Enviar para os carros específicos
       }
     }else{
+      this.client.sendMessage(chatId, '*Match errado:* erro no carros ')
       return
     }
   };
 
-   sendMessageWithDelay(phone, message, delay) {
+   private sendMessageWithDelay(phone, message, delay) {
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         this.client.sendMessage(`${phone}@c.us`, message);
@@ -1214,8 +1228,14 @@ export class WhatsService {
       const chatId = lead.id._serialized;
       // Supondo que as etiquetas estão armazenadas em uma propriedade chamada 'labels'
       if (lead.labels && lead.labels.length > 0) {
-          this.client.addOrRemoveLabels([''], [chatId])
-          console.log(`Etiquetas removidas do lead: ${lead.name}`);
+        const labels = await this.client.getChatLabels(chatId);
+        
+        if (labels.some(label => label.id === '32')) {
+          continue
+        }
+
+        this.client.addOrRemoveLabels([''], [chatId])
+        console.log(`Etiquetas removidas do lead: ${chatId}`);
       }
     }
   };
@@ -1411,9 +1431,7 @@ export class WhatsService {
   
         if (run.status === 'completed') {
           // Listando as mensagens da thread após a execução
-          const messages = await client.beta.threads.messages.list(run.thread_id);
-          console.log('Mensagens recebidas:', messages.data);
-  
+          const messages = await client.beta.threads.messages.list(run.thread_id);  
           // Verificando se a estrutura das mensagens está correta
           if (messages.data && messages.data[0] && messages.data[0].content) {
             //@ts-ignore
