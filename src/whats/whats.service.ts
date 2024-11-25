@@ -1403,7 +1403,7 @@ export class WhatsService {
   async generateOfferMessage(order: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
       const api_key = process.env.KEY_IA;
-      const assistantId = process.env.KEY_MOX;
+      const assistantId = 'asst_o5Fb20sLKxxg4DVRRZBDqZz9';
   
       const client = new OpenAI({ apiKey: api_key });
   
