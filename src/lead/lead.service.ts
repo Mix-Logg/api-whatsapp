@@ -43,6 +43,17 @@ export class LeadService {
     }
   };
 
+  async findAllTypeVehicle(typeVehicle: string) {
+    const lead = await this.leadRepository.find({where:{typeVehicle}});
+    if(lead != null){
+      return lead
+    }
+    return {
+      status:500,
+      message:'Lead does not exist'
+    }
+  };
+
   async findOnePhone(phone: string) {
     console.log(phone)
     const lead = await this.leadRepository.findOne({where:{phone}});
