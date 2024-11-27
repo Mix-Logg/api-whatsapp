@@ -44,15 +44,18 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 2.0v');
+      console.log('Mix está pronta! (Black Friday) 2.1v');
+      // const allLabel  = await this.client.getLabels();
+      // console.log(allLabel)
     });
 
     this.client.on('message', async (message: Message) => {
       
       if(message.id.remote === '5511932291233@c.us'){
-
+        // this.sendProposal(message)
+        // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 2.0v)')
+          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 2.1v)')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -91,7 +94,7 @@ export class WhatsService {
               return;
             case '24':
               this.sendWaitService(message.id.remote)
-              // suporte
+              // suporte - fila
               return
             case '25':
               // doc
@@ -1184,35 +1187,69 @@ export class WhatsService {
     const offerMessage = await this.generateOfferMessage(order);
 
     this.client.sendMessage(chatId, `*Aqui está uma copia da oferta:*`)
-    await this.sendMessageWithDelay(chatId, offerMessage, 1000, chatId);
+    await this.sendMessageWithDelay(chatId, offerMessage, 1000);
     // Regex para capturar a parte dos carros
     const carsMatch = message.body.match(/carros:([\w,]+)/);
     if (carsMatch) {
       const cars = carsMatch[1].split(',');
       if (cars.includes("todos")) {
-       const allLeads = await this.leadService.findAll();
-        for (const lead of allLeads){
-          const phoneRegex = /^55\d{11}$/;
-          if (!phoneRegex.test(lead.phone)) {
-            bugs++;
-            continue;
-          };
+        const allLeads = await this.leadService.findAll();
+        const leadPhones = allLeads.map(lead => lead.phone);
+        const whatsappContacts = await this.client.getContacts(); 
+        const whatsappPhones = whatsappContacts.map(contact => contact.number); 
+        const notInWhatsApp = leadPhones.filter(phone => !whatsappPhones.includes(phone));
+        const notInDatabase = whatsappPhones.filter(phone => !leadPhones.includes(phone));
+        const nonDuplicatedPhones = [...new Set([...notInWhatsApp, ...notInDatabase])];
+        
+        // for (const lead of nonDuplicatedPhones){
+        //   const phoneRegex = /^55\d{11}$/;
+        //   // if (!phoneRegex.test(lead.phone)) {
+        //   //   bugs++;
+        //   //   continue;
+        //   // };
 
-          const labels = await this.client.getChatLabels(`${lead.phone}@c.us`);
-          if (labels.some(label => label.id === '32')) {
-            activeCount++;
-            continue;
-          };
+        //   // const labels = await this.client.getChatLabels(`${lead.phone}@c.us`);
+        //   // if (labels.some(label => label.id === '32')) {
+        //   //   activeCount++;
+        //   //   continue;
+        //   // };
           
-          const typeVehicle = lead.typeVehicle;
-          if (typeVehicle) {
-            // Incrementa o contador do tipo de veículo
-            typeVehicleCount[typeVehicle] = (typeVehicleCount[typeVehicle] || 0) + 1;
+        //   // const typeVehicle = lead.typeVehicle;
+        //   // if (typeVehicle) {
+        //   //   // Incrementa o contador do tipo de veículo
+        //   //   typeVehicleCount[typeVehicle] = (typeVehicleCount[typeVehicle] || 0) + 1;
+        //   // }
+
+        //   // await this.sendMessageWithDelay(lead.phone, offerMessage, 5000);
+
+        // }
+        console.log('total leads',nonDuplicatedPhones.length)
+        for (let phone of nonDuplicatedPhones) {
+
+          if(!phone){
+            // console.log('pulando:', phone)
+            continue
           }
 
-          await this.sendMessageWithDelay(lead.phone, offerMessage, 5000);
+          if(!phone.includes(`@`)){
+            phone = `${phone}@c.us`
+          }
 
+          // Verifica labels no contato (somente para contatos individuais)
+          const labels = await this.client.getChatLabels(phone);
+          if (labels.some(label => label.id === '32' || label.id === '26' || label.id === '25' || label.id === '24' || label.id === '30')) {
+             activeCount++; // Contador de contatos ativos
+            console.log(`Número já possui label ativa: ${phone}`);
+            continue; // Ignora este número se já está ativo
+          }
+          
+      
+          // Envio de mensagem (apenas para contatos válidos)
+          await this.sendMessageWithDelay(phone, offerMessage, 5000);
+          // console.log(`Mensagem enviada para: ${phone}`);
         }
+      
+      
         this.client.sendMessage(chatId, `*BAGAÇEIRA FEITA*`)
       } else {
         let allLeads:any;
@@ -1279,24 +1316,35 @@ export class WhatsService {
     }
   };
 
-  private sendMessageWithDelay(phone,message, delay, phoneTester = null) {
+  private sendMessageWithDelay(chatId, message, delay) {
     return new Promise<void>((resolve) => {
-      const chatId = phoneTester ? phoneTester : `${phone}@c.us`
       setTimeout( async () => {
-        let imagePathFastVan =  `table/fastshop/black/van-black.jpeg`;
-        let media = MessageMedia.fromFilePath(imagePathFastVan);
 
-        let audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-        let mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-        let audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-        let mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+        // let imagePathFastVan =  `table/fastshop/black/van-black.jpeg`;
+        // let mediaVan = MessageMedia.fromFilePath(imagePathFastVan);
+        // await this.client.sendMessage(chatId, `*🚐 Ei, vanzeiro esperto! Quer lucrar mais? 😎👉*`);
+        // await this.client.sendMessage(chatId, mediaVan);
 
-        
-        await this.client.sendMessage(chatId, media);
-        await this.client.sendMessage(chatId, mediaApresentation);
-        await this.client.sendMessage(chatId, mediaQuestion);
+        // let imagePathFastVuc =  `table/fastshop/black/vuc-black.jpeg`;
+        // let mediaVuc = MessageMedia.fromFilePath(imagePathFastVuc);
+        // await this.client.sendMessage(chatId, `*🚚 Ô, vuczeiro de primeira! Tá pronto pra ganhar mais? 💰🔥*`);
+        // await this.client.sendMessage(chatId, mediaVuc);
+
+        // let imagePathFastHr =  `table/fastshop/black/hr-black.jpeg`;
+        // let mediaHr = MessageMedia.fromFilePath(imagePathFastHr);
+        // await this.client.sendMessage(chatId, `*🚚 HRzão na área! Quer ver sua renda subir? 📈🚀*`);
+        // await this.client.sendMessage(chatId, mediaHr);
+
+        // let audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+        // let mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+        // let audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+        // let mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+    
+        // await this.client.sendMessage(chatId, mediaApresentation);
+        // await this.client.sendMessage(chatId, mediaQuestion);
+
         this.client.sendMessage(chatId, message);
-        console.log('Mensagem enviada para:', chatId);
+        // console.log('Mensagem enviada para:', chatId);
         resolve();  // Resolvemos a promise após o envio
       }, delay);
     });
