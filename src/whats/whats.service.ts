@@ -82,7 +82,23 @@ export class WhatsService {
       // if(message.id.remote !== '5511932291233@c.us'){
       //   return
       // }
-      this.verifyCadaster(message)
+      const haveLabel = await this.client.getChatLabels(message.from);
+      switch (haveLabel[0].id) {
+          case '25':
+            // doc
+            break;
+          case '26':
+            // humanizado
+            break;
+          case '32':
+            // operação-ativo
+            break;
+          default:
+            this.verifyCadaster(message) 
+            break;
+      }
+
+      
       if (usersCheks[message.from]?.isVerified) {
         const haveLabel = await this.client.getChatLabels(message.from);
         // const allLabel  = await this.client.getLabels();
