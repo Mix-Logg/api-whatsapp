@@ -21,7 +21,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/snap/bin/chromium',
+        // executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -44,7 +44,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! (Black Friday) 2.1v');
+      console.log('Mix está pronta! 2.2v');
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
     });
@@ -55,7 +55,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 2.1v)')
+          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 2.2v)')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -82,6 +82,7 @@ export class WhatsService {
       // if(message.id.remote !== '5511932291233@c.us'){
       //   return
       // }
+      
       const haveLabel = await this.client.getChatLabels(message.from);
       switch (haveLabel[0].id) {
           case '25':
@@ -494,27 +495,28 @@ export class WhatsService {
           await this.client.sendMessage(chatId, `atualmente não temos operações para carro 😞 \n\n mas assim que abri uma oportunidade, entraremos em contato 😀`);
           return
         case 'fiorino':
-          message = `🛻 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY* \n\n*0-* Falar com atendente`
+          message = `🛻 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'van':
-          message = `🚐 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*`
+          // message = `🚐 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP`
+          await this.client.sendMessage(chatId, `atualmente não temos operações para van 😞 \n\n mas assim que abri uma oportunidade, entraremos em contato 😀`);
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'hr':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*\n*2-* Uberlândia/MG\n*3-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Uberlândia/MG\n*3-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
         case 'vuc':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP *TABELA BLACK FRIDAY*\n*2-* Barueri/SP *TABELA BLACK FRIDAY*\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Cajamar/SP\n*2-* Barueri/SP\n*3-* Uberlândia/MG\n*4-* Contagem/MG \n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return;
         case '3/4':
-          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Barueri/SP *TABELA BLACK FRIDAY*\n*2-* Contagem/MG\n*3-* Uberlândia/MG\n\n*0-* Falar com atendente`
+          message = `🚚 *${response.result.typeVehicle.toLowerCase()}*\n*Centros de Distribuição (CD)*\naqui estão as operações que combinam com você\n\n*1-* Barueri/SP\n\n*0-* Falar com atendente`
           await this.client.sendMessage(chatId, message);
           await this.updateConversationStateTwo(chatId, 'PRESENTATION');
           return
@@ -580,7 +582,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)*\n🤑 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💸 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/black/fiorino-black.jpeg`;
+            imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
@@ -606,27 +608,27 @@ export class WhatsService {
         break
       case 'van':
         switch (message) {
-          case '1':
-            sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
-            await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/black/van-black.jpeg`;
-            media = MessageMedia.fromFilePath(imagePath);
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-            await this.client.sendMessage(chatId, media);
-            await this.client.sendMessage(chatId, mediaApresentation);
-            await this.client.sendMessage(chatId, mediaQuestion);
-            sendMessage = `*Pré-requisitos*\n\n✅ *Ajudante* (+ 18 Anos) \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
-            // sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
-            await this.client.sendMessage(chatId, sendMessage);
-            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
-            return;
+          // case '1':
+          //   sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   imagePath =  `table/fastshop/black/van-black.jpeg`;
+          //   media = MessageMedia.fromFilePath(imagePath);
+          //   audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+          //   mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+          //   audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+          //   mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+          //   await this.client.sendMessage(chatId, media);
+          //   await this.client.sendMessage(chatId, mediaApresentation);
+          //   await this.client.sendMessage(chatId, mediaQuestion);
+          //   sendMessage = `*Pré-requisitos*\n\n✅ *Ajudante* (+ 18 Anos) \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+          //   // sendMessage = `*Pré-requisitos*\n\n✅ *Altura interna Baú 2,10* \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+          //   return;
       //     case '':
       //       sendMessage = `*Vila Leopoldina/SP*\n\n🍽️ *Operação:* Restaurantes\n📍 *Local:* Vila Leopoldina/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Alimentos`
       //       await this.client.sendMessage(chatId, sendMessage);
@@ -669,7 +671,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/black/hr-black.jpeg`;
+            imagePath =  `table/fastshop/cajamar-hr.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
@@ -730,7 +732,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/black/vuc-black.jpeg`;
+            imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
@@ -748,7 +750,7 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/americanas/black/34-vuc-black.jpeg`;
+            imagePath =  `table/americanas/vuc.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
@@ -801,41 +803,41 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/americanas/black/34-vuc-black.jpeg`;
+            imagePath =  `table/americanas/34.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
             await this.client.sendMessage(chatId, media);
             sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
-          case '2':
-            sendMessage = `*Contagem/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Contagem/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
-            await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
-            media = MessageMedia.fromFilePath(imagePath);
-            await this.client.sendMessage(chatId, media);
-            sendMessage = `*Pré-requisitos*\n\n✅ *Comprimentro menor* de 5,00 \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
-            await this.client.sendMessage(chatId, sendMessage);
-            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
-            break;
-          case '3':
-            sendMessage = `*Uberlândia/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Uberlândia/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
-            await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
-            media = MessageMedia.fromFilePath(imagePath);
-            await this.client.sendMessage(chatId, media);
-            sendMessage = `*Pré-requisitos*\n\n✅ *Comprimentro menor* de 5,00\n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
-            await this.client.sendMessage(chatId, sendMessage);
-            await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
-            break;
+          // case '2':
+          //   sendMessage = `*Contagem/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Contagem/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+          //   media = MessageMedia.fromFilePath(imagePath);
+          //   await this.client.sendMessage(chatId, media);
+          //   sendMessage = `*Pré-requisitos*\n\n✅ *Comprimentro menor* de 5,00 \n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+          //   break;
+          // case '3':
+          //   sendMessage = `*Uberlândia/MG*\n\n🚪 Operação: porta a porta\n📍 Local: Uberlândia/MG\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   imagePath =  `table/fastshop/uberlandia-contagem-vuc-hr.jpeg`;
+          //   media = MessageMedia.fromFilePath(imagePath);
+          //   await this.client.sendMessage(chatId, media);
+          //   sendMessage = `*Pré-requisitos*\n\n✅ *Comprimentro menor* de 5,00\n✅ *Ajudante* (+ 18 Anos)\n✅ *Carrinho para Entrega*\n✅ Veículo precisa de instalação *EVA/Espaguete*\n \n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+          //   await this.client.sendMessage(chatId, sendMessage);
+          //   await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+          //   break;
           case '0':
             await this.client.sendMessage(chatId,'os nossos atendentes vão continuar com o seu atendimento 🤩')
             await this.client.addOrRemoveLabels([], [chatId])
