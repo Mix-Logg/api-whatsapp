@@ -55,7 +55,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! (Black Friday 2.2v)')
+          this.client.sendMessage(message.from, 'Estou funcionando! 2.3v')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
