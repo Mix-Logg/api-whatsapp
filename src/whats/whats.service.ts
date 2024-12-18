@@ -44,7 +44,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 2.3v');
+      console.log('Mix está pronta! 2.4v');
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
     });
@@ -55,7 +55,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 2.3v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 2.4v')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -83,21 +83,24 @@ export class WhatsService {
       //   return
       // }
       
-      const haveLabel = await this.client.getChatLabels(message.from);
-      switch (haveLabel[0].id) {
-          case '25':
-            // doc
-            break;
-          case '26':
-            // humanizado
-            break;
-          case '32':
-            // operação-ativo
-            break;
-          default:
-            this.verifyCadaster(message) 
-            break;
-      }
+      // const haveLabel = await this.client.getChatLabels(message.from);
+
+      // if(haveLabel.length > 0){
+      //   switch (haveLabel[0].id) {
+      //       case '25':
+      //         // doc
+      //         break;
+      //       case '26':
+      //         // humanizado
+      //         break;
+      //       case '32':
+      //         // operação-ativo
+      //         break;
+      //       default:
+      //         this.verifyCadaster(message) 
+      //         break;
+      //   }
+      // }
 
       
       if (usersCheks[message.from]?.isVerified) {
@@ -126,6 +129,8 @@ export class WhatsService {
         }
         await this.handleIncomingMessage(message);
       }
+
+      this.verifyCadaster(message)
     });
 
     this.client.initialize();
@@ -726,22 +731,32 @@ export class WhatsService {
       case 'vuc':
         switch (message) {
           case '1':
-            sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            // sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
+            // media = MessageMedia.fromFilePath(imagePath);
+            // audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            // mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            // audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            // mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            // await this.client.sendMessage(chatId, media);
+            // await this.client.sendMessage(chatId, mediaApresentation);
+            // await this.client.sendMessage(chatId, mediaQuestion);
+            // sendMessage = `*Pré-requisitos*\n\n ✅ *Ajudante* (+ 18 Anos) \n\n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            sendMessage = `📦 *Leve seu negócio de entregas para o próximo nível com a Mix Entregas!* 🚀\n\nOlá, somos a Mix serv log | Entregas\nJá realizamos mais de 🚚 +2 milhões Entregas por todo Brasil 👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/\n*Instagram:*\nhttps://www.instagram.com/mixservlog/`
             await this.client.sendMessage(chatId, sendMessage);
             imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
             await this.client.sendMessage(chatId, media);
-            await this.client.sendMessage(chatId, mediaApresentation);
-            await this.client.sendMessage(chatId, mediaQuestion);
-            sendMessage = `*Pré-requisitos*\n\n ✅ *Ajudante* (+ 18 Anos) \n\n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            sendMessage = `🛣️ Pacotes de frete mensal feitos sob medida para você:\n\n*•	(10 frete)  0 até 180 km: R$ 3.000,00*\n*•	(5 fretes ) 181 a 250 km: R$ 3.500,00*\n*•	(5 fretes) 251 a 350 km: R$ 3.750,00*\n\n✅ Sobre o Pacote de Fretes\n\n*•	Como Será realizada as entregas: Via Aplicativo*\n*•	A carga Contempla Seguro contra Roubo/Furto*\n*•	Carga Seca*\n*•	O auxiliar é por conta do prestador dos serviços*\n*•	Os Pedágios serão pagos a parte do frete no sem parar*\n*•	Os pagamentos serão via app*\n\n📲 Quer garantir suas entregas mensais sem imprevistos?\nFale conosco agora: www.mixentregas.com.br\n\n🚚 *Mix Entregas*\n O Futuro das Entregas Começa Aqui!`;
+            await this.client.sendMessage(chatId, sendMessage);
+            sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
