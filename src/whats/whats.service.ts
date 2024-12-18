@@ -44,7 +44,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 2.2v');
+      console.log('Mix está pronta! 2.3v');
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
     });
