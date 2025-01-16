@@ -55,6 +55,7 @@ export class WhatsService {
 
     this.client.on('ready', () => {
       this.call = true
+      console.log('Max está pronta!');
       try{
         setInterval(this.verifyHour.bind(this), 25 * 1000);
       } catch (err) {
