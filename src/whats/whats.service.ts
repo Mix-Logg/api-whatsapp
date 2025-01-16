@@ -31,7 +31,7 @@ export class WhatsService {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/snap/bin/chromium',
+        executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -65,47 +65,57 @@ export class WhatsService {
 
     this.client.on('message', async (message: Message) => {
       this.verifyGroup(message)
+
+      if(message.from == '5511932291233@c.us' && message.body == 'test'){
+        try{
+          await this.client.sendMessage(message.from, `Estou funcionando! v1.3`);
+        } catch (err) {
+          console.error('Erro ao enviar a mensagem:', err);
+          process.exit(1)
+        }
+      };
       
-      if(message.from == '5511932291233@c.us' && message.body == 'start'){
-        try{
-          // await this.client.sendMessage(message.from, `Estou funcionando! v1.3`);
+      // if(message.from == '5511932291233@c.us' && message.body == 'start'){
+      //   try{
+      //     // await this.client.sendMessage(message.from, `Estou funcionando! v1.3`);
           
-          const today = new Date().toLocaleDateString('pt-BR');
-          this.messageWorkConfirmation(today)
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      //     const today = new Date().toLocaleDateString('pt-BR');
+      //     this.messageWorkConfirmation(today)
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
-      if(message.from == '5511932291233@c.us' && message.body == 'group'){
-        try{
-          this.messageWorkConfirmationList()
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      // if(message.from == '5511932291233@c.us' && message.body == 'group'){
+      //   try{
+      //     this.messageWorkConfirmationList()
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
-      if(message.from == '5511932291233@c.us' && message.body == 'presence'){
-        try{
-          this.messageWorkPresence()
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      // if(message.from == '5511932291233@c.us' && message.body == 'presence'){
+      //   try{
+      //     this.messageWorkPresence()
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
-      if(message.from == '5511932291233@c.us' && message.body == 'group2'){
-        try{
-          this.messageWorkPresenceList()
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      // if(message.from == '5511932291233@c.us' && message.body == 'group2'){
+      //   try{
+      //     this.messageWorkPresenceList()
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
       // this.sendMessageToGroupWithNumber(message.from,'test')
+
       return
     });
 
@@ -231,7 +241,7 @@ export class WhatsService {
   
       // Envia a mensagem para o grupo
       await this.client.sendMessage(groupId, message);
-      console.log(`Mensagem enviada para o grupo ${groupId}`);
+      // console.log(`Mensagem enviada para o grupo ${groupId}`);
   
       // Retorna o ID do grupo
       return groupId;
@@ -249,37 +259,23 @@ export class WhatsService {
     if (Array.isArray(disponibility)) {
       const idsDrivers = [];
       const idsAuxiliaries = [];
-      const contacts = [
-        {
-          id: 45,
-          plate: 'ABC759',
-          name: 'Guilheme', 
-          phone: `5511932291233`,
-          idGroup: '', 
-          check  : false,
-          go     : false,
-          thread:'',
-          motion:'',
-          presence:false,
-          time:''
-        }
-      ];
+      const contacts = [];
 
       disponibility.forEach(operation => {
         idsDrivers.push(operation.idDriver);         // Adiciona o idDriver ao array
         idsAuxiliaries.push(operation.idAuxiliary);  // Adiciona o idAuxiliary ao array
       });
 
-      // for (const idDriver of idsDrivers) {
-      //   const driverDetails = await this.driverService.findOne(idDriver);
-      //   const vehicleDetails = await this.vehicleService.findOne(idDriver,'driver')
-      //   contacts.push({
-      //     id: idDriver,
-      //     plate: vehicleDetails.plate,
-      //     name: driverDetails.name, 
-      //     phone: `55${driverDetails.phone}`, 
-      //   });
-      // };
+      for (const idDriver of idsDrivers) {
+        const driverDetails = await this.driverService.findOne(idDriver);
+        const vehicleDetails = await this.vehicleService.findOne(idDriver,'driver')
+        contacts.push({
+          id: idDriver,
+          plate: vehicleDetails.plate,
+          name: driverDetails.name, 
+          phone: `55${driverDetails.phone}`, 
+        });
+      };
 
       contacts.forEach( async (contact) => {
         const thread  = await this.createThread()
@@ -305,7 +301,7 @@ export class WhatsService {
 
   async messageWorkConfirmationList(){
     if (!Array.isArray(this.driversWorkToday)) {
-      console.log('não tem motorista disponível para gerar lista.')
+      // console.log('não tem motorista disponível para gerar lista.')
       return
     };
 
@@ -329,8 +325,8 @@ export class WhatsService {
     `Ordem: Gere uma lista de presença (quem está disponível e quem não está, atraves do parametro go) para o whatsapp a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     // console.log('Max:', chat)
-    // this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
-    this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
+    this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
+    // this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
   };
 
   async messageWorkPresence(){
@@ -367,8 +363,8 @@ export class WhatsService {
     `Ordem: Gere uma lista de presença(chegada) a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     // console.log('Max:', chat)
-    // this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
-    this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
+    this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
+    // this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
   };
 
   async verifyGroup(message){
@@ -398,8 +394,8 @@ export class WhatsService {
     const year    = data.getFullYear();
     const today = `${day}/${month}/${year}`
 
-    if(hour === 13 && minutes ===  30 && this.call) {
-    // if(hour === 0 && minutes === 0  && this.call) {
+    // if(hour === 13 && minutes ===  30 && this.call) {
+    if(hour === 0 && minutes === 0  && this.call) {
       this.call = false;
       // console.log('Deu o horario de confirma para acordar')
       this.messageWorkConfirmation(today);
@@ -407,8 +403,8 @@ export class WhatsService {
     }
 
 
-    if(hour ===  13 && minutes === 32 && !this.call) {
-    // if( hour === 5 && minutes === 1 && !this.call){
+    // if(hour ===  13 && minutes === 32 && !this.call) {
+    if( hour === 5 && minutes === 1 && !this.call){
       this.call = true;
       // console.log('Deu o horario de envio da Lista')
       this.messageWorkConfirmationList()
@@ -416,8 +412,8 @@ export class WhatsService {
     }
 
 
-    if(hour ===  13 && minutes === 34 && this.call) {
-    // if( hour === 5 && minutes === 15 && this.call){
+    // if(hour ===  13 && minutes === 34 && this.call) {
+    if( hour === 5 && minutes === 15 && this.call){
       this.call = false;
       // console.log('Deu o horario de confirma para presença')
       this.messageWorkPresence()
@@ -425,8 +421,8 @@ export class WhatsService {
     }
 
 
-    if(hour ===  13 && minutes === 36 && !this.call ) {
-    // if( hour === 5 && minutes === 30 && !this.call){
+    // if(hour ===  13 && minutes === 36 && !this.call ) {
+    if( hour === 5 && minutes === 30 && !this.call){
       this.call = true;
       // console.log('Deu o horario de envio da Lista de presença')
       this.messageWorkPresenceList()
@@ -435,7 +431,6 @@ export class WhatsService {
     
     
     if(hour === 7 && minutes === 1 ){
-      this.call = false;
       this.driversWorkToday = null
       this.threadWorkListToday = null
       return
