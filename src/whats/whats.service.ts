@@ -42,8 +42,9 @@ export class WhatsService {
           '--no-first-run',
           '--no-zygote',
           // '--single-process',
-          '--disable-gpu'
+          '--disable-gpu',
         ],
+        userDataDir: '/test',
         timeout: 0,
       },
     });
