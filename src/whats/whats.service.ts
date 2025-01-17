@@ -44,7 +44,6 @@ export class WhatsService {
           // '--single-process',
           '--disable-gpu',
         ],
-        userDataDir: '/test',
         timeout: 0,
       },
     });
