@@ -32,7 +32,7 @@ export class WhatsService {
       authStrategy: new LocalAuth(),
       puppeteer: {
         executablePath: '/snap/bin/chromium',
-        headless: false,  
+        headless: true,  
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
