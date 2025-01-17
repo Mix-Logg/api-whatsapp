@@ -44,6 +44,7 @@ export class WhatsService {
           '--single-process',
           '--disable-gpu',
         ],
+        userDataDir: '/path/to/profile1',
         timeout: 0,
       },
     });
