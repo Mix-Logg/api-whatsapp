@@ -71,7 +71,7 @@ export class WhatsService {
 
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando! v1.3`);
+          await this.client.sendMessage(message.from, `Estou funcionando! v1.4`);
         } catch (err) {
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
@@ -79,11 +79,11 @@ export class WhatsService {
       };
       
       // if(message.from == '5511932291233@c.us' && message.body == 'start'){
-      //   try{
-      //     // await this.client.sendMessage(message.from, `Estou funcionando! v1.3`);
-          
+      //   try{ 
+      //     console.log('aqui')
       //     const today = new Date().toLocaleDateString('pt-BR');
       //     this.messageWorkConfirmation(today)
+      //     console.log(today)
       //   } catch (err) {
       //     console.error('Erro ao enviar a mensagem:', err);
       //     process.exit(1)
@@ -117,12 +117,8 @@ export class WhatsService {
       //   }
       // };
 
-      // this.sendMessageToGroupWithNumber(message.from,'test')
-
       return
     });
-
-    this.client.initialize();
   };
 
   tractiveMessage(inputString, index) {
@@ -262,7 +258,19 @@ export class WhatsService {
     if (Array.isArray(disponibility)) {
       const idsDrivers = [];
       const idsAuxiliaries = [];
-      const contacts = [];
+      const contacts = [
+        // {
+        //   id: 41,
+        //   plate: 'Deus é fiel',
+        //   name: 'Gui', 
+        //   phone: `5511932291233`,
+        //   idGroup: null,
+        //   check: false,
+        //   thread: null,
+        //   go: false,
+        //   motion: '',
+        // }
+      ];
 
       disponibility.forEach(operation => {
         idsDrivers.push(operation.idDriver);         // Adiciona o idDriver ao array
@@ -290,6 +298,7 @@ export class WhatsService {
         contact.go     = false;
         contact.motion = 'Sem contato (não respondeu)';
       });
+
 
       this.driversWorkToday = contacts
       // Retorna os arrays se necessário
@@ -325,7 +334,7 @@ export class WhatsService {
     const jsonString = await JSON.stringify(list);
     // console.log(`Ordem: Gere uma lista de presença a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo`)
     const chat = await this.submitMessage(this.threadWorkListToday, 
-    `Ordem: Gere uma lista de presença (quem está disponível e quem não está, atraves do parametro go) para o whatsapp a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
+    `Ordem: Gere uma lista de presença (quem está disponível e quem não está, atraves do parametro go) para o whatsapp a parti dessas informações (título: Fast-Shop A Caminho ): ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     // console.log('Max:', chat)
     this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
@@ -338,6 +347,9 @@ export class WhatsService {
     };
 
     this.driversWorkToday.forEach( async (contact) => {
+      if(!contact.go){
+        return
+      }
       const message = await this.submitMessage(contact.thread, 'Ordem: envie uma mensagem perguntando se ele já chegou ao CD ', null)
       const idGroup = await this.sendMessageToGroupWithNumber(contact.phone, message)
     });
@@ -363,7 +375,7 @@ export class WhatsService {
 
     const jsonString = await JSON.stringify(list);
     const chat = await this.submitMessage(this.threadWorkListToday, 
-    `Ordem: Gere uma lista de presença(chegada) a parti dessas informações: ${jsonString}, Lembrando se caso você já enviou atualize o mesmo` ,
+    `Ordem: Gere uma lista de presença(chegada) a parti dessas informações (título: Fast-Shop Chegada ): ${jsonString} ATENÇÃO:essa lista é totalmente diferente da lista anterior, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     // console.log('Max:', chat)
     this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
@@ -379,10 +391,11 @@ export class WhatsService {
     };
 
     this.driversWorkToday.forEach(async (driver, index) => {
-      if (driver.idGroup == idGroup && !driver.presence) {
+      if (driver.idGroup == idGroup) {
         const response = await this.submitMessage(driver.thread, message.body, index);
         await this.client.sendMessage(idGroup, response);
-      }
+
+    }
     });
     
   };
