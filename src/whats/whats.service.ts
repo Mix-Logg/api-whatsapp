@@ -44,7 +44,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 2.6v');
+      console.log('Mix está pronta! 2.7v');
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
     });
@@ -55,7 +55,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 2.6v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 2.7v')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -823,7 +823,7 @@ export class WhatsService {
             // await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
           case '2':
-            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n📈 *Quantidade de Entregas:* 1 a 3 (média)\n🗓️ *Período:* Semanal\n🕑 *Horário Carregamento:* A partir das 4h (agendamento)\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat \n\n ❌ *Não precisa de Ajudante*\n✔️ *Precisa deixar o veículo no CD para ser carregado*`
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
@@ -876,7 +876,7 @@ export class WhatsService {
       case '3/4':
         switch (message) {
           case '1':
-            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n📈 *Quantidade de Entregas:* 1 a 3 (média)\n🗓️ *Período:* Semanal\n🕑 *Horário Carregamento:* A partir das 4h (agendamento)\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat \n\n ❌ *Não precisa de Ajudante*\n✔️ *Precisa deixar o veículo no CD para ser carregado*`
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
@@ -929,7 +929,7 @@ export class WhatsService {
       case 'toco':
         switch (message) {
           case '1':
-            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n� *Quantidade de Entregas:* 1 a 3 (média)\n🗓️ *Período:* Semanal\n🕑 *Horário Carregamento:* A partir das 4h (agendamento)\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat \n\n ❌ *Não precisa de Ajudante*\n✔️ *Precisa deixar o veículo no CD para ser carregado*`
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
@@ -954,7 +954,7 @@ export class WhatsService {
       case 'truck':
         switch (message) {
           case '1':
-            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
+            sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n� *Quantidade de Entregas:* 1 a 3 (média)\n🗓️ *Período:* Semanal\n🕑 *Horário Carregamento:* A partir das 4h (agendamento)\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat \n\n ❌ *Não precisa de Ajudante*\n✔️ *Precisa deixar o veículo no CD para ser carregado*`
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* \n💰 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💰 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
