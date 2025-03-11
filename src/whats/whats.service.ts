@@ -587,15 +587,25 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
             sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)*\n🤑 Paga dia 02 do mês subsequente\n\n*2° Quinzena, considera o período ( 16 a 31)*\n💸 Paga dia 16 do mês subsequente`
             await this.client.sendMessage(chatId, sendMessage);
+            
+            // Imagem da Tabela
             imagePath =  `table/fastshop/cajamar-fiorino.jpeg`;
             media = MessageMedia.fromFilePath(imagePath);
+            
+            // Audio da Apresentação
             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            
+            // Audio das Perguntas
             audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
             mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            
+            // Envio de imagem
             await this.client.sendMessage(chatId, media);
-            await this.client.sendMessage(chatId, mediaApresentation);
-            await this.client.sendMessage(chatId, mediaQuestion);
+            // await this.client.sendMessage(chatId, mediaApresentation);
+            // await this.client.sendMessage(chatId, mediaQuestion);
+
+            // Mensagem de Ação
             sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com atendente`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
@@ -670,22 +680,46 @@ export class WhatsService {
       case 'hr':
         switch (message) {
           case '1':
-            sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
-            await this.client.sendMessage(chatId, sendMessage);
-            sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
-            await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/cajamar-hr.jpeg`;
-            media = MessageMedia.fromFilePath(imagePath);
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-            await this.client.sendMessage(chatId, media);
-            await this.client.sendMessage(chatId, mediaApresentation);
-            await this.client.sendMessage(chatId, mediaQuestion);
-            sendMessage = `*Pré-requisitos*\n\n✅ *Ajudante* (+ 18 Anos) \n\n*3-* aceitar \n*1-* voltar as operações\n\n\n*0-* Falar com suporte`
+             // Mensagem de Apresentação.
+             sendMessage = `*Cajamar/SP*\n\nProposta de Operação - Mix Entregas\n🔥 Oportunidade exclusiva para motoristas com veículo adequado! 🔥\n\n📦 Operação Mensal – Entregas de Eletrônicos e Eletrodomésticos\n\n📍 Local: CD Cajamar\n⏰ Horário: Carregamento às 5h\n📅 Frequência: Mínimo 4 cargas máximo 6 cargas (Segunda a sábado)\n🛣️ KM: Considera trajeto ida e volta CD\n🍞☕ Benefício: Café da manhã incluso\n\n💡 *Diferenciais da Mix Entregas:*\n✅ Aplicativo exclusivo (Mix Entregas) para facilitar programação e pagamentos\n✅ Pedágio reembolsado via Sem Parar\n✅ Convênio de abastecimento com desconto na quinzena\n\n💰 Pagamento transparente e garantido\n\n📅 *Fechamento e repasse:*\n🔹 01 a 15: Pagamento dia 02 do mês seguinte\n🔹 16 a 30: Pagamento dia 16 do mês seguinte\n\n🚛 *Requisitos do Veículo:*\n✔️ Baú com altura mínima 2,10m\n✔️ Veículo com instalação de EVA/Espaguete\n✔️ Ajudante obrigatório (idade mínima 18 anos)\n\n🔒 *Cadastro Rápido e Seguro!*\n📌 Documentação necessária:\n📍 Veículo: RG/CPF do proprietário, documento do veículo, ANTT\n📍 Motorista: CNH, RG, CPF, comprovante de endereço, telefone, e-mail\n📍 Ajudante: RG, CPF, CNH (opcional), telefone, e-mail\n\n🏦 Dados Bancários para Pagamento\n🔹 PIX: __\n\n*🚀 Vagas Limitadas! Cadastre-se agora e garanta sua operação!*`
+             await this.client.sendMessage(chatId, sendMessage);
+ 
+             // Mensagem de Tabela de Ganhos
+             sendMessage = `*🚛 Tabela de Ganhos – Operação VUC 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
+             await this.client.sendMessage(chatId, sendMessage);
+ 
+             // Imagem da Tabela
+             imagePath =  `table/fastshop/cajamar-hr.jpeg`;
+             media = MessageMedia.fromFilePath(imagePath);
+             await this.client.sendMessage(chatId, media);
+ 
+             // Mensagem de Média de Faturamento
+             sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.000,00\n2ª Faixa 5 Fretes mês= R$ 3.250,00\n3ª Faixa 5 Fretes mês= R$ 3.500,00\n4ª Faixa 5 Fretes mês= R$ 4.000,00\n5ª Faixa 5 Fretes mês= R$ 4.750,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
+             await this.client.sendMessage(chatId, sendMessage);
+ 
+             
+             
+             //Antiga Apresentação
+             // sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+             // await this.client.sendMessage(chatId, sendMessage);
+             // sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
+             // await this.client.sendMessage(chatId, sendMessage);
+             // sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+             // await this.client.sendMessage(chatId, sendMessage);
+             
+             
+             // Audio Apresentação
+             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+             // Audio Duvidas
+             audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+             mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+             // Envio de Mensagens
+             await this.client.sendMessage(chatId, mediaApresentation);
+             await this.client.sendMessage(chatId, mediaQuestion);
+
+             // Mensagem de Ação
+            sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
@@ -731,34 +765,59 @@ export class WhatsService {
       case 'vuc':
         switch (message) {
           case '1':
+            // Mensagem de Apresentação.
+            sendMessage = `*Cajamar/SP*\n\nProposta de Operação - Mix Entregas\n🔥 Oportunidade exclusiva para motoristas com veículo adequado! 🔥\n\n📦 Operação Mensal – Entregas de Eletrônicos e Eletrodomésticos\n\n📍 Local: CD Cajamar\n⏰ Horário: Carregamento às 5h\n📅 Frequência: Mínimo 4 cargas máximo 6 cargas (Segunda a sábado)\n🛣️ KM: Considera trajeto ida e volta CD\n🍞☕ Benefício: Café da manhã incluso\n\n💡 *Diferenciais da Mix Entregas:*\n✅ Aplicativo exclusivo (Mix Entregas) para facilitar programação e pagamentos\n✅ Pedágio reembolsado via Sem Parar\n✅ Convênio de abastecimento com desconto na quinzena\n\n💰 Pagamento transparente e garantido\n\n📅 *Fechamento e repasse:*\n🔹 01 a 15: Pagamento dia 02 do mês seguinte\n🔹 16 a 30: Pagamento dia 16 do mês seguinte\n\n🚛 *Requisitos do Veículo:*\n✔️ Baú com altura mínima 2,10m\n✔️ Veículo com instalação de EVA/Espaguete\n✔️ Ajudante obrigatório (idade mínima 18 anos)\n\n🔒 *Cadastro Rápido e Seguro!*\n📌 Documentação necessária:\n📍 Veículo: RG/CPF do proprietário, documento do veículo, ANTT\n📍 Motorista: CNH, RG, CPF, comprovante de endereço, telefone, e-mail\n📍 Ajudante: RG, CPF, CNH (opcional), telefone, e-mail\n\n🏦 Dados Bancários para Pagamento\n🔹 PIX: __\n\n*🚀 Vagas Limitadas! Cadastre-se agora e garanta sua operação!*`
+            await this.client.sendMessage(chatId, sendMessage);
+
+            // Mensagem de Tabela de Ganhos
+            sendMessage = `*🚛 Tabela de Ganhos – Operação VUC 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
+            await this.client.sendMessage(chatId, sendMessage);
+
+            // Imagem da Tabela
+            imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+
+            // Mensagem de Média de Faturamento
+            sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.500,00\n2ª Faixa 5 Fretes mês= R$ 3.500,00\n3ª Faixa 5 Fretes mês= R$ 3.750,00\n4ª Faixa 5 Fretes mês= R$ 4.500,00\n5ª Faixa 5 Fretes mês= R$ 5.000,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
+            await this.client.sendMessage(chatId, sendMessage);
+
+            
+            
+            //Antiga Apresentação
             // sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
             // await this.client.sendMessage(chatId, sendMessage);
             // sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
             // await this.client.sendMessage(chatId, sendMessage);
             // sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
             // await this.client.sendMessage(chatId, sendMessage);
-            // imagePath =  `table/fastshop/cajamar-vuc.jpeg`;
-            // media = MessageMedia.fromFilePath(imagePath);
-            // audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            // mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-            // audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            // mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-            // await this.client.sendMessage(chatId, media);
-            // await this.client.sendMessage(chatId, mediaApresentation);
-            // await this.client.sendMessage(chatId, mediaQuestion);
-            // sendMessage = `*Pré-requisitos*\n\n ✅ *Ajudante* (+ 18 Anos) \n\n\n*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
-            // await this.client.sendMessage(chatId, sendMessage);
-            // await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
-            sendMessage = `📦 *Leve seu negócio de entregas para o próximo nível com a Mix Entregas!* 🚀\n\nOlá, somos a Mix serv log | Entregas\nJá realizamos mais de 🚚 +2 milhões Entregas por todo Brasil 👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/\n*Instagram:*\nhttps://www.instagram.com/mixservlog/`
-            await this.client.sendMessage(chatId, sendMessage);
-            imagePath =  `table/fastshop/pack/cajamar-vuc.jpeg`;
-            media = MessageMedia.fromFilePath(imagePath);
-            await this.client.sendMessage(chatId, media);
-            sendMessage = `🛣️ Pacotes de frete mensal feitos sob medida para você:\n\n*•	(10 frete)  0 até 180 km: R$ 3.000,00*\n*•	(5 fretes ) 181 a 250 km: R$ 3.500,00*\n*•	(5 fretes) 251 a 350 km: R$ 3.750,00*\n\n✅ Sobre o Pacote de Fretes\n\n*•	Como Será realizada as entregas: Via Aplicativo*\n*•	A carga Contempla Seguro contra Roubo/Furto*\n*•	Carga Seca*\n*•	O auxiliar é por conta do prestador dos serviços*\n*•	Os Pedágios serão pagos a parte do frete no sem parar*\n*•	Os pagamentos serão via app*\n\n📲 Quer garantir suas entregas mensais sem imprevistos?\nFale conosco agora: www.mixentregas.com.br\n\n🚚 *Mix Entregas*\n O Futuro das Entregas Começa Aqui!`;
-            await this.client.sendMessage(chatId, sendMessage);
+            
+            
+            // Audio Apresentação
+            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            // Audio Duvidas
+            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            // Envio de Mensagens
+            await this.client.sendMessage(chatId, mediaApresentation);
+            await this.client.sendMessage(chatId, mediaQuestion);
+            // Mensagem de Ação
             sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
+            
+            // Teste de Apresentação 
+            // sendMessage = `📦 *Leve seu negócio de entregas para o próximo nível com a Mix Entregas!* 🚀\n\nOlá, somos a Mix serv log | Entregas\nJá realizamos mais de 🚚 +2 milhões Entregas por todo Brasil 👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/\n*Instagram:*\nhttps://www.instagram.com/mixservlog/`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // imagePath =  `table/fastshop/pack/cajamar-vuc.jpeg`;
+            // media = MessageMedia.fromFilePath(imagePath);
+            // await this.client.sendMessage(chatId, media);
+            // sendMessage = `🛣️ Pacotes de frete mensal feitos sob medida para você:\n\n*•	(10 frete)  0 até 180 km: R$ 3.000,00*\n*•	(5 fretes ) 181 a 250 km: R$ 3.500,00*\n*•	(5 fretes) 251 a 350 km: R$ 3.750,00*\n\n✅ Sobre o Pacote de Fretes\n\n*•	Como Será realizada as entregas: Via Aplicativo*\n*•	A carga Contempla Seguro contra Roubo/Furto*\n*•	Carga Seca*\n*•	O auxiliar é por conta do prestador dos serviços*\n*•	Os Pedágios serão pagos a parte do frete no sem parar*\n*•	Os pagamentos serão via app*\n\n📲 Quer garantir suas entregas mensais sem imprevistos?\nFale conosco agora: www.mixentregas.com.br\n\n🚚 *Mix Entregas*\n O Futuro das Entregas Começa Aqui!`;
+            // await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
             break;
           case '2':
             sendMessage = `*Barueri/SP*\n\n🏪 *Operação:* Abastecimento de loja\n📍 *Local:* Barueri/SP\n🕑 *Período:* Segunda a Sábado\n🚚 *Carregamento:* Por agenda\n📦 *Produto:* Diversos\n🚧 *Pedágio:* Reembolso na fatura\n🗺️ *Rastreador:* Ominilink, Sascar e Onixsat`
