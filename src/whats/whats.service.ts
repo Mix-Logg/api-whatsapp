@@ -44,7 +44,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 2.5v');
+      console.log('Mix está pronta! 2.6v');
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
     });
@@ -55,7 +55,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 2.5v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 2.6v')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -73,34 +73,30 @@ export class WhatsService {
         return
       }
       
-      if(message.id.remote === '5511947557554@c.us'){
-        this.sendProposal(message)
-        return
-      }
+      // if(message.id.remote === '5511947557554@c.us'){
+      //   this.sendProposal(message)
+      //   return
+      // }
 
       // LOCK 🔒
       // if(message.id.remote !== '5511932291233@c.us'){
       //   return
       // }
       
-      // const haveLabel = await this.client.getChatLabels(message.from);
-
-      // if(haveLabel.length > 0){
-      //   switch (haveLabel[0].id) {
-      //       case '25':
-      //         // doc
-      //         break;
-      //       case '26':
-      //         // humanizado
-      //         break;
-      //       case '32':
-      //         // operação-ativo
-      //         break;
-      //       default:
-      //         this.verifyCadaster(message) 
-      //         break;
-      //   }
-      // }
+      const haveLabel = await this.client.getChatLabels(message.from);
+      if(haveLabel.length > 0){
+        switch (haveLabel[0].id) {
+            case '25':
+              // doc
+              return
+            case '26':
+              // humanizado
+              return
+            case '32':
+              // operação-ativo
+              return
+        }
+      }
 
       
       if (usersCheks[message.from]?.isVerified) {
@@ -274,7 +270,7 @@ export class WhatsService {
         if (message.body.toLowerCase() === 'sim') {
           await this.finalizeProcess(chatId);
         } else if (message.body.toLowerCase() === 'não' || message.body.toLowerCase() === 'nao' ) {       
-          console.log('caiu aqui (não)')
+          // console.log('caiu aqui (não)')
           await this.resetProcess(chatId);
         } else {
           await this.client.sendMessage(chatId, "Resposta não reconhecida. Por favor, responda com 'Sim' ou 'Não'.");
@@ -680,45 +676,47 @@ export class WhatsService {
       case 'hr':
         switch (message) {
           case '1':
-             // Mensagem de Apresentação.
-             sendMessage = `*Cajamar/SP*\n\nProposta de Operação - Mix Entregas\n🔥 Oportunidade exclusiva para motoristas com veículo adequado! 🔥\n\n📦 Operação Mensal – Entregas de Eletrônicos e Eletrodomésticos\n\n📍 Local: CD Cajamar\n⏰ Horário: Carregamento às 5h\n📅 Frequência: Mínimo 4 cargas máximo 6 cargas (Segunda a sábado)\n🛣️ KM: Considera trajeto ida e volta CD\n🍞☕ Benefício: Café da manhã incluso\n\n💡 *Diferenciais da Mix Entregas:*\n✅ Aplicativo exclusivo (Mix Entregas) para facilitar programação e pagamentos\n✅ Pedágio reembolsado via Sem Parar\n✅ Convênio de abastecimento com desconto na quinzena\n\n💰 Pagamento transparente e garantido\n\n📅 *Fechamento e repasse:*\n🔹 01 a 15: Pagamento dia 02 do mês seguinte\n🔹 16 a 30: Pagamento dia 16 do mês seguinte\n\n🚛 *Requisitos do Veículo:*\n✔️ Baú com altura mínima 2,10m\n✔️ Veículo com instalação de EVA/Espaguete\n✔️ Ajudante obrigatório (idade mínima 18 anos)\n\n🔒 *Cadastro Rápido e Seguro!*\n📌 Documentação necessária:\n📍 Veículo: RG/CPF do proprietário, documento do veículo, ANTT\n📍 Motorista: CNH, RG, CPF, comprovante de endereço, telefone, e-mail\n📍 Ajudante: RG, CPF, CNH (opcional), telefone, e-mail\n\n🏦 Dados Bancários para Pagamento\n🔹 PIX: __\n\n*🚀 Vagas Limitadas! Cadastre-se agora e garanta sua operação!*`
-             await this.client.sendMessage(chatId, sendMessage);
- 
-             // Mensagem de Tabela de Ganhos
-             sendMessage = `*🚛 Tabela de Ganhos – Operação VUC 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
-             await this.client.sendMessage(chatId, sendMessage);
- 
-             // Imagem da Tabela
-             imagePath =  `table/fastshop/cajamar-hr.jpeg`;
-             media = MessageMedia.fromFilePath(imagePath);
-             await this.client.sendMessage(chatId, media);
- 
-             // Mensagem de Média de Faturamento
-             sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.000,00\n2ª Faixa 5 Fretes mês= R$ 3.250,00\n3ª Faixa 5 Fretes mês= R$ 3.500,00\n4ª Faixa 5 Fretes mês= R$ 4.000,00\n5ª Faixa 5 Fretes mês= R$ 4.750,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
-             await this.client.sendMessage(chatId, sendMessage);
- 
-             
-             
-             //Antiga Apresentação
-             // sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
-             // await this.client.sendMessage(chatId, sendMessage);
-             // sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
-             // await this.client.sendMessage(chatId, sendMessage);
-             // sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
-             // await this.client.sendMessage(chatId, sendMessage);
-             
-             
-             // Audio Apresentação
-             audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-             mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-             // Audio Duvidas
-             audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-             mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-             // Envio de Mensagens
-             await this.client.sendMessage(chatId, mediaApresentation);
-             await this.client.sendMessage(chatId, mediaQuestion);
+            // Mensagem de Apresentação.
+            sendMessage = `*Cajamar/SP*\n\nProposta de Operação - Mix Entregas\n🔥 Oportunidade exclusiva para motoristas com veículo adequado! 🔥\n\n📦 Operação Mensal – Entregas de Eletrônicos e Eletrodomésticos\n\n📍 Local: CD Cajamar\n⏰ Horário: Carregamento às 5h\n📅 Frequência: Mínimo 4 cargas máximo 6 cargas (Segunda a sábado)\n🛣️ KM: Considera trajeto ida e volta CD\n🍞☕ Benefício: Café da manhã incluso\n\n💡 *Diferenciais da Mix Entregas:*\n✅ Aplicativo exclusivo (Mix Entregas) para facilitar programação e pagamentos\n✅ Pedágio reembolsado via Sem Parar\n✅ Convênio de abastecimento com desconto na quinzena\n\n💰 Pagamento transparente e garantido\n\n📅 *Fechamento e repasse:*\n🔹 01 a 15: Pagamento dia 02 do mês seguinte\n🔹 16 a 30: Pagamento dia 16 do mês seguinte`
+            await this.client.sendMessage(chatId, sendMessage);
+            // Mensage de Apresentação.
+            sendMessage =`🚛 *Requisitos do Veículo:*\n✔️ Baú com altura mínima 2,10m\n✔️ Veículo com instalação de EVA/Espaguete\n✔️ Ajudante obrigatório (idade mínima 18 anos)\n\n🔒 *Cadastro Rápido e Seguro!*\n📌 Documentação necessária:\n📍 Veículo: RG/CPF do proprietário, documento do veículo, ANTT\n📍 Motorista: CNH, RG, CPF, comprovante de endereço, telefone, e-mail\n📍 Ajudante: RG, CPF, CNH (opcional), telefone, e-mail\n\n🏦 Dados Bancários para Pagamento\n🔹 PIX: __\n\n*🚀 Vagas Limitadas! Cadastre-se agora e garanta sua operação!*`
+            await this.client.sendMessage(chatId, sendMessage);
 
-             // Mensagem de Ação
+            // Audio Apresentação
+            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            await this.client.sendMessage(chatId, mediaApresentation);
+ 
+            // Mensagem de Tabela de Ganhos
+            sendMessage = `*🚛 Tabela de Ganhos – Operação HR e Similares 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
+            await this.client.sendMessage(chatId, sendMessage);
+ 
+            // Imagem da Tabela
+            imagePath =  `table/fastshop/cajamar-hr.jpeg`;
+            media = MessageMedia.fromFilePath(imagePath);
+            await this.client.sendMessage(chatId, media);
+ 
+            // Mensagem de Média de Faturamento
+            sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.000,00\n2ª Faixa 5 Fretes mês= R$ 3.250,00\n3ª Faixa 5 Fretes mês= R$ 3.500,00\n4ª Faixa 5 Fretes mês= R$ 4.000,00\n5ª Faixa 5 Fretes mês= R$ 4.750,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
+            await this.client.sendMessage(chatId, sendMessage);
+ 
+             
+             
+            //Antiga Apresentação
+            // sendMessage = `*Cajamar/SP*\n\n🚪 Operação: porta a porta\n📍 Local: Cajamar/SP\n🕑 Período: Segunda a Sábado\n🚚 Carregamento: 5:00h  \n🚧 Pedágio: reembolso pedágio no sem parar.\n📦 Produto: eletrônico/eletrodomésticos`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*Benefícios*\n\n☕ café da manhã\n📱 App\n💰 Adiantamento\n⛽ Convênio Posto`
+            // await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*Pagamento*\n\n*1° Quinzena, considera o período ( 01 a 15)* Paga dia 02 do mês subsequente\n*2° Quinzena, considera o período ( 16 a 31)* Paga dia 16 do mês subsequente`
+            // await this.client.sendMessage(chatId, sendMessage);
+             
+            // Audio Duvidas
+            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            await this.client.sendMessage(chatId, mediaQuestion);
+
+            // Mensagem de Ação
             sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
             await this.updateConversationStateTwo(chatId, 'DECISION_PROPOSAL');
@@ -766,8 +764,16 @@ export class WhatsService {
         switch (message) {
           case '1':
             // Mensagem de Apresentação.
-            sendMessage = `*Cajamar/SP*\n\nProposta de Operação - Mix Entregas\n🔥 Oportunidade exclusiva para motoristas com veículo adequado! 🔥\n\n📦 Operação Mensal – Entregas de Eletrônicos e Eletrodomésticos\n\n📍 Local: CD Cajamar\n⏰ Horário: Carregamento às 5h\n📅 Frequência: Mínimo 4 cargas máximo 6 cargas (Segunda a sábado)\n🛣️ KM: Considera trajeto ida e volta CD\n🍞☕ Benefício: Café da manhã incluso\n\n💡 *Diferenciais da Mix Entregas:*\n✅ Aplicativo exclusivo (Mix Entregas) para facilitar programação e pagamentos\n✅ Pedágio reembolsado via Sem Parar\n✅ Convênio de abastecimento com desconto na quinzena\n\n💰 Pagamento transparente e garantido\n\n📅 *Fechamento e repasse:*\n🔹 01 a 15: Pagamento dia 02 do mês seguinte\n🔹 16 a 30: Pagamento dia 16 do mês seguinte\n\n🚛 *Requisitos do Veículo:*\n✔️ Baú com altura mínima 2,10m\n✔️ Veículo com instalação de EVA/Espaguete\n✔️ Ajudante obrigatório (idade mínima 18 anos)\n\n🔒 *Cadastro Rápido e Seguro!*\n📌 Documentação necessária:\n📍 Veículo: RG/CPF do proprietário, documento do veículo, ANTT\n📍 Motorista: CNH, RG, CPF, comprovante de endereço, telefone, e-mail\n📍 Ajudante: RG, CPF, CNH (opcional), telefone, e-mail\n\n🏦 Dados Bancários para Pagamento\n🔹 PIX: __\n\n*🚀 Vagas Limitadas! Cadastre-se agora e garanta sua operação!*`
+            sendMessage = `*Cajamar/SP*\n\nProposta de Operação - Mix Entregas\n🔥 Oportunidade exclusiva para motoristas com veículo adequado! 🔥\n\n📦 Operação Mensal – Entregas de Eletrônicos e Eletrodomésticos\n\n📍 Local: CD Cajamar\n⏰ Horário: Carregamento às 5h\n📅 Frequência: Mínimo 4 cargas máximo 6 cargas (Segunda a sábado)\n🛣️ KM: Considera trajeto ida e volta CD\n🍞☕ Benefício: Café da manhã incluso\n\n💡 *Diferenciais da Mix Entregas:*\n✅ Aplicativo exclusivo (Mix Entregas) para facilitar programação e pagamentos\n✅ Pedágio reembolsado via Sem Parar\n✅ Convênio de abastecimento com desconto na quinzena\n\n💰 Pagamento transparente e garantido\n\n📅 *Fechamento e repasse:*\n🔹 01 a 15: Pagamento dia 02 do mês seguinte\n🔹 16 a 30: Pagamento dia 16 do mês seguinte`
             await this.client.sendMessage(chatId, sendMessage);
+            // Mensage de Apresentação.
+            sendMessage =`🚛 *Requisitos do Veículo:*\n✔️ Baú com altura mínima 2,10m\n✔️ Veículo com instalação de EVA/Espaguete\n✔️ Ajudante obrigatório (idade mínima 18 anos)\n\n🔒 *Cadastro Rápido e Seguro!*\n📌 Documentação necessária:\n📍 Veículo: RG/CPF do proprietário, documento do veículo, ANTT\n📍 Motorista: CNH, RG, CPF, comprovante de endereço, telefone, e-mail\n📍 Ajudante: RG, CPF, CNH (opcional), telefone, e-mail\n\n🏦 Dados Bancários para Pagamento\n🔹 PIX: __\n\n*🚀 Vagas Limitadas! Cadastre-se agora e garanta sua operação!*`
+            await this.client.sendMessage(chatId, sendMessage);
+
+            // Audio Apresentação
+            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            await this.client.sendMessage(chatId, mediaApresentation);
 
             // Mensagem de Tabela de Ganhos
             sendMessage = `*🚛 Tabela de Ganhos – Operação VUC 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
@@ -793,15 +799,12 @@ export class WhatsService {
             // await this.client.sendMessage(chatId, sendMessage);
             
             
-            // Audio Apresentação
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+           
             // Audio Duvidas
             audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
             mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-            // Envio de Mensagens
-            await this.client.sendMessage(chatId, mediaApresentation);
             await this.client.sendMessage(chatId, mediaQuestion);
+
             // Mensagem de Ação
             sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
             await this.client.sendMessage(chatId, sendMessage);
@@ -1228,7 +1231,7 @@ export class WhatsService {
 
    const number = chatId.replace('@c.us', '');
    const lead = await this.leadService.findOnePhone(number)
-   console.log(lead)
+  //  console.log(lead)
    if(lead.status == 200){
     this.userData[chatId] = {
       name: lead.result.name ,
@@ -1261,7 +1264,7 @@ export class WhatsService {
   };
 
   private async sendProposal(message:Message){
-    console.log('chamando function envio em massa')
+    // console.log('chamando function envio em massa')
     const chatId = message.from;
     let order:string
     let cars : any
@@ -1315,7 +1318,7 @@ export class WhatsService {
         //   // await this.sendMessageWithDelay(lead.phone, offerMessage, 5000);
 
         // }
-        console.log('total leads',nonDuplicatedPhones.length)
+        // console.log('total leads',nonDuplicatedPhones.length)
         for (let phone of nonDuplicatedPhones) {
 
           if(!phone){
@@ -1331,7 +1334,7 @@ export class WhatsService {
           const labels = await this.client.getChatLabels(phone);
           if (labels.some(label => label.id === '32' || label.id === '26' || label.id === '25' || label.id === '24' || label.id === '30')) {
              activeCount++; // Contador de contatos ativos
-            console.log(`Número já possui label ativa: ${phone}`);
+            // console.log(`Número já possui label ativa: ${phone}`);
             continue; // Ignora este número se já está ativo
           }
           
@@ -1445,7 +1448,7 @@ export class WhatsService {
   private async removeAllLabels(){
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const leads = await this.client.getContacts();
-    console.log(leads.length)
+    // console.log(leads.length)
     for (const lead of leads) {
       const chatId = lead.id._serialized;
       // Supondo que as etiquetas estão armazenadas em uma propriedade chamada 'labels'
