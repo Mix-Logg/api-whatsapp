@@ -5,6 +5,17 @@ import { LeadService } from 'src/lead/lead.service';
 import FindTimeSP from 'hooks/time';
 import OpenAI from "openai";
 
+// SELECT email 
+// FROM `lead` 
+// WHERE email REGEXP '^[A-Za-z0-9._%+-]+@gmail\.com$'
+// AND email NOT LIKE '%. %'  -- Remove espaços após o ponto
+// AND email NOT LIKE '% %'  -- Remove espaços dentro do e-mail
+// AND email NOT LIKE '%@%@%'  -- Garante que tem apenas um '@'
+// AND email NOT LIKE '%@.%'  -- Remove '@.' que pode ser erro de digitação
+// AND email NOT LIKE '%.coml'  -- Remove extensões erradas como '.coml'
+// AND email NOT LIKE '%.brl'  -- Remove extensões erradas como '.brl'
+// AND LENGTH(email) BETWEEN 6 AND 320;  -- Garante que tem um tamanho aceitável
+
 type ConversationStepOne = 'INITIAL_CONTACT' | 'GET_NAME' | 
 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'GET_EMAIL' | 'COMPLETE' | 'CONFIRMATION' | 'TRACKER';
 type ConversationStepTwo = 'INVITATION' | 'PROPOSAL' | 'PRESENTATION' | 'DECISION_PROPOSAL' | 'APPROVED' | 'RECUSE' | 'REGION_PROPOSAL' ;
