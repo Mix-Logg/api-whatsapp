@@ -8,6 +8,9 @@ import OpenAI from "openai";
 type ConversationStepOne = 'INITIAL_CONTACT' | 'GET_NAME' | 
 'GET_VEHICLE_INFO' | 'GET_REGION' | 'GET_MEASURE' | 'GET_EMAIL' | 'COMPLETE' | 'CONFIRMATION' | 'TRACKER';
 type ConversationStepTwo = 'INVITATION' | 'PROPOSAL' | 'PRESENTATION' | 'DECISION_PROPOSAL' | 'APPROVED' | 'RECUSE' | 'REGION_PROPOSAL' ;
+type ConversationCompany = 'INITIAL_CONTACT' | 'GET_NAME' | ''
+type ConversationAPP = 'INITIAL_CONTACT' | 'GET_NAME' | 'GET_EMAIL' | 'GET_VEHICLE_INFO' |  'COMPLETE' | 'CONFIRMATION' | 'VERIFY_DATA' | 'APRESENTATION';
+type SelectConversation = 'COMPANY' | 'APP' | 'SERVICE' | 'DECISION' | 'DEFAULT'
 const usersCheks = {};
 @Injectable()
 export class WhatsService {
@@ -44,7 +47,10 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 2.7v');
+      console.log('Mix está pronta! 2.8v');
+      // const allLead = await this.leadService.findAllByEmailValid();
+      // console.log(allLead.result)
+      // await this.sendBomb(allLead.result)
       // const allLabel  = await this.client.getLabels();
       // console.log(allLabel)
     });
@@ -55,7 +61,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 2.7v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 2.8v')
         }
         if(message.body == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -70,6 +76,12 @@ export class WhatsService {
           this.client.sendMessage(message.from, messageSorry)
         }
 
+        if(message.body.toLocaleLowerCase() == 'bomb'){
+          this.client.sendMessage(message.from, 'Enviando bomba!')
+          const allLead = await this.leadService.findAllByEmailValid();
+          this.sendBomb(allLead.result)
+        }
+
         return
       }
       
@@ -82,7 +94,8 @@ export class WhatsService {
       // if(message.id.remote !== '5511932291233@c.us'){
       //   return
       // }
-      
+
+      // ############## LABEL ############## \\
       const haveLabel = await this.client.getChatLabels(message.from);
       if(haveLabel.length > 0){
         switch (haveLabel[0].id) {
@@ -98,35 +111,128 @@ export class WhatsService {
         }
       }
 
-      
-      if (usersCheks[message.from]?.isVerified) {
-        const haveLabel = await this.client.getChatLabels(message.from);
-        // const allLabel  = await this.client.getLabels();
-        // console.log(allLabel)
-        if(haveLabel.length > 0){
-          switch (haveLabel[0].id) {
-            case '18':
-              this.handleIncomingMessageTwo(message)
-              return;
-            case '24':
-              this.sendWaitService(message.id.remote)
-              // suporte - fila
-              return
-            case '25':
-              // doc
-              return
-            case '26':
-              // humanizado
-              return
-            case '32':
-              // operação-ativo
-              return
+      // ############## TYPE CONVERSATION ############## \\
+      const typeConversation = await this.getTypeConversation(message.from);
+      switch (typeConversation) {
+        case 'COMPANY':
+          console.log('company')
+          break;
+        case 'APP':
+          if (usersCheks[message.from]?.isVerified) {
+            const haveLabel = await this.client.getChatLabels(message.from);
+            if(haveLabel.length > 0){
+              switch (haveLabel[0].id) {
+                case '44':
+                  this.awaitLinkApp(message)
+                  return
+                case '45':
+                  const chatId = message.from;
+                  const link = `✅ *Acesso já liberado!* ✍️ \n\n*Você pode baixar o app no link:* \n\nhttps://play.google.com/store/apps/details?id=com.mixtrans.mixEntregadores`
+                  await this.client.sendMessage(chatId, link);
+                  return
+              }
+            }
+            await this.handleIncomingMessageApp(message);
           }
-        }
-        await this.handleIncomingMessage(message);
+          await this.verifyCadasterApp(message);
+          break;
+        case 'SERVICE':
+          if (usersCheks[message.from]?.isVerified) {
+            const haveLabel = await this.client.getChatLabels(message.from);
+            // const allLabel  = await this.client.getLabels();
+            // console.log(allLabel)
+            if(haveLabel.length > 0){
+              switch (haveLabel[0].id) {
+                case '18':
+                  this.handleIncomingMessageTwo(message)
+                  return;
+                case '24':
+                  this.sendWaitService(message.id.remote)
+                  // suporte - fila
+                  return
+                case '25':
+                  // doc
+                  return
+                case '26':
+                  // humanizado
+                  return
+                case '32':
+                  // operação-ativo
+                  return
+              }
+            }
+            await this.handleIncomingMessage(message);
+          }
+          this.verifyCadaster(message)
+          return
+        case 'DECISION':
+          switch (message.body) {
+            case '1':
+              await this.updateTypeConversation(message.from, 'SERVICE');
+              if (usersCheks[message.from]?.isVerified) {
+                const haveLabel = await this.client.getChatLabels(message.from);
+                // const allLabel  = await this.client.getLabels();
+                // console.log(allLabel)
+                if(haveLabel.length > 0){
+                  switch (haveLabel[0].id) {
+                    case '18':
+                      this.handleIncomingMessageTwo(message)
+                      return;
+                    case '24':
+                      this.sendWaitService(message.id.remote)
+                      // suporte - fila
+                      return
+                    case '25':
+                      // doc
+                      return
+                    case '26':
+                      // humanizado
+                      return
+                    case '32':
+                      // operação-ativo
+                      return
+                  }
+                }
+                await this.handleIncomingMessage(message);
+              }
+              this.verifyCadaster(message)
+              return
+            case '2':
+              await this.updateTypeConversation(message.from, 'APP');
+              if (usersCheks[message.from]?.isVerified) {
+                const haveLabel = await this.client.getChatLabels(message.from);
+                if(haveLabel.length > 0){
+                  switch (haveLabel[0].id) {
+                    case '41':
+                      this.handleIncomingMessageTwo(message)
+                      return;
+                  }
+                }
+                await this.handleIncomingMessageApp(message);
+              }
+              await this.verifyCadasterApp(message);
+              break;
+            // case '3':
+            //   await this.updateTypeConversation(message.from, 'COMPANY');
+            //   break;
+            default:
+              await this.client.sendMessage(message.from, 'Não entendi 🤯, vamos tentar de novo, escolha um *número* para continuar!');
+              await this.client.sendMessage(message.from, '1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* ');
+              await this.updateTypeConversation(message.from, 'DECISION');
+              break;
+          }
+          return
+        default:
+          const presentation = `💁🏾‍♀️ *Olá, Seja bem vindo ao nosso atendimento!*\n *Eu sou a Mix a sua atendente!*  \n\n*Nós somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
+          await this.client.sendMessage(message.from, presentation);
+          const defaultMessage = 'Sobre qual assunto você gostaria de conversar?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* '
+          await this.client.sendMessage(message.from, defaultMessage);
+          const atentionMessage = '❗ Digite um número para continuar';
+          await this.client.sendMessage(message.from, atentionMessage);
+          await this.updateTypeConversation(message.from, 'DECISION');
+          break;
       }
 
-      this.verifyCadaster(message)
     });
 
     this.client.initialize();
@@ -223,10 +329,294 @@ export class WhatsService {
     } 
   };
 
-  // ################ PASSIVE (no label) ###################### \\
-
+  private typeConversation: { [chatId: string]: SelectConversation } = {};
+  private ConversationCompany: { [chatId: string]: ConversationCompany } = {};
+  private ConversationApp: { [chatId: string]: ConversationAPP } = {};
   private conversationState: { [chatId: string]: ConversationStepOne } = {};
   private userData: { [chatId: string]: { name?: string; vehicle?: string; region?: string; measure?: string; email?:string; tracker?:string } } = {};
+  
+  private async getConversationState(chatId: string): Promise<ConversationStepOne> {
+    return this.conversationState[chatId] || 'INITIAL_CONTACT';
+  };
+  
+  private async getTypeConversation(chatId: string): Promise<SelectConversation> {
+    return this.typeConversation[chatId] || 'DEFAULT';
+  };
+
+  private async getConversationCompany(chatId: string): Promise<ConversationCompany> {
+    return this.ConversationCompany[chatId] || 'INITIAL_CONTACT';
+  };
+
+  private async getConversationApp(chatId: string): Promise<ConversationAPP> {
+    return this.ConversationApp[chatId] || 'INITIAL_CONTACT';
+  };
+
+  private async updateConversationStateOne(chatId: string, step: ConversationStepOne) {
+    this.conversationState[chatId] = step;
+  };
+
+  private async updateTypeConversation(chatId: string, step: SelectConversation) {
+    this.typeConversation[chatId] = step;
+  };
+
+  private async updateConversationCompany(chatId: string, step: ConversationCompany) {
+    this.ConversationCompany[chatId] = step;
+  };
+
+  private async updateConversationApp(chatId: string, step: ConversationAPP) {
+    this.ConversationApp[chatId] = step;
+  };
+  
+  
+  // ################ COMPANY ###################### \\
+
+
+  // ################ APP ###################### \\
+
+  private async handleIncomingMessageApp(message: Message) {
+    const chatId = message.from;
+    const ConversationStep = await this.getConversationApp(chatId);
+    switch (ConversationStep) {
+      case 'INITIAL_CONTACT':
+        await this.sendFirstContactResponseApp(chatId);
+        await this.updateConversationApp(chatId, 'GET_NAME');
+        break;
+      case 'GET_NAME':
+        await this.collectNameApp(chatId, message.body);
+        await this.updateConversationApp(chatId, 'GET_EMAIL');
+        break;
+      case 'GET_EMAIL':
+        await this.collectEmailApp(chatId, message.body);
+        await this.updateConversationApp(chatId, 'GET_VEHICLE_INFO');
+        break;
+      case 'GET_VEHICLE_INFO':
+        await this.collectVehicleInfoApp(chatId, message.body);
+        await this.updateConversationApp(chatId, 'CONFIRMATION');
+        break;
+      case 'CONFIRMATION':
+        if (message.body.toLowerCase() === 'sim') {
+          await this.CadasterLeadApp(chatId);
+        } else if (message.body.toLowerCase() === 'não' || message.body.toLowerCase() === 'nao' ) {       
+          await this.resetProcessApp(chatId);
+        } else {
+          await this.client.sendMessage(chatId, "Resposta não reconhecida. Por favor, responda com 'Sim' ou 'Não'.");
+        }
+        break;
+      case 'APRESENTATION':
+        switch (message.body) {
+          case '1':
+            await this.instructionApp(chatId);
+            break;
+          case '2':
+            const badMessage = 'Poxa que pena 😔, espero que tenha gostado da ideia!';
+            await this.client.sendMessage(chatId, badMessage);
+            const defaultMessage = 'Sobre qual assunto você gostaria de conversar agora 👀?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* '
+            await this.client.sendMessage(chatId, defaultMessage);
+            await this.updateTypeConversation(chatId, 'DECISION');
+            await this.updateConversationApp(chatId, 'INITIAL_CONTACT');
+            break;
+          default:
+            await this.client.sendMessage(chatId, 'Não entendi 🤯, vamos tentar de novo, escolha um *número* para continuar!');
+            await this.client.sendMessage(chatId, "1 - *Cadastrar* \n2 - *Voltar*");
+            break;
+        }
+        break;
+      default:
+        await this.client.sendMessage(chatId, 'Não entendi 🤯, vamos tentar de novo, escolha um *número* para continuar!');
+        await this.updateConversationApp(chatId, 'INITIAL_CONTACT');
+        break;
+    }
+  };
+
+  private async resetProcessApp(chatId: string) {
+    await this.client.sendMessage(chatId, "Ok 💁🏾‍♀️ vamos atualizar os dados\n Qual é o seu nome? 🤐");
+    await this.updateConversationApp(chatId, 'GET_NAME');
+    // Opcional: Limpar os dados do usuário se necessário
+    delete this.userData[chatId];
+  };
+
+  private async sendFirstContactResponseApp(chatId: string){
+    const presentation = `💁🏾‍♀️ Antes de apresentar nosso aplicativo, preciso te conhecer melhor`
+    await this.client.sendMessage(chatId, presentation);
+    await this.client.sendMessage(chatId, "🧡 Qual é o seu nome?");
+  };
+
+  private async collectNameApp(chatId: string, name: string) {
+    // Armazena a informação do nome
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].name = name;
+    const message = ' 📧 Qual seu e-mail ?';
+    await this.client.sendMessage(chatId, message);
+  };
+
+  private async collectEmailApp(chatId: string, email: string) {
+    // Armazena a informação do nome
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    this.userData[chatId].email = email;
+    const message = '🛞 *Qual é o tipo do seu veículo?*\n\n1- 🛵 moto \n2- 🚗 carro \n3- 🛻 fiorino\n4- 🚐 van \n5- 🚚 hr\n6- 🚚 vuc \n7- 🚚 3/4\n8- 🚛 toco \n9- 🚛 truck \n\n ✍🏾 selecione seu veículo através do número ';
+    await this.client.sendMessage(chatId, message);
+  };
+
+  private async collectVehicleInfoApp(chatId: string, vehicleInfo: string) {
+    // Armazena a informação do veículo
+    if (!this.userData[chatId]) {
+      this.userData[chatId] = {};
+    }
+    switch (vehicleInfo.toLocaleLowerCase()) {
+      case '1' :
+        this.userData[chatId].vehicle = 'moto';
+        break;
+      case '2':
+        this.userData[chatId].vehicle = 'carro';
+        break;
+      case '3':
+        this.userData[chatId].vehicle = 'fiorino';
+        break;
+      case '4':
+        this.userData[chatId].vehicle = 'van';
+        break;
+      case '5':
+        this.userData[chatId].vehicle = 'hr';
+        break;
+      case '6':
+        this.userData[chatId].vehicle = 'vuc';
+        break;
+      case '7':
+        this.userData[chatId].vehicle = '3/4';
+        break;
+      case '8':
+        this.userData[chatId].vehicle = 'toco';
+        break;
+      case '9':
+        this.userData[chatId].vehicle = 'truck';
+        break;
+        
+      default:
+        await this.client.sendMessage(chatId, "Não entendi 😵‍💫, vamos tentar de novo");
+        const message = '🛞 *Qual é o tipo do seu veículo?*\n\n1- 🛵 moto \n2- 🚗 carro \n3- 🛻 fiorino\n4- 🚐 van \n5- 🚚 hr\n6- 🚚 vuc \n7- 🚚 3/4\n8- 🚛 toco \n9- 🚛 truck \n\n ✍🏾 selecione seu veículo através do número ';
+        await this.client.sendMessage(chatId, message)
+        return
+    }
+    await this.confirmDataApp(chatId); 
+  };
+
+  private async confirmDataApp(chatId: string) {
+    try{
+      const userData = this.userData[chatId];
+      const confirmationMessage = `📋📦 As informações está correta? \n\n😁 *Nome:* ${userData.name}\n📧 *Email:* ${userData.email} \n🚚 *Veículo:* ${userData.vehicle}\n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
+      if (userData) {
+        await this.client.sendMessage(chatId, confirmationMessage);
+        await this.updateConversationApp(chatId, 'CONFIRMATION');
+      } else {
+        await this.client.sendMessage(chatId, "Não consegui coletar todas as informações. Por favor, tente novamente.");
+        // Opcional: Retornar ao início ou terminar o atendimento
+      }
+    }catch(e){
+      console.log(e)
+    }
+  };
+
+  private async CadasterLeadApp(chatId: string) {
+    await this.updateConversationApp(chatId, 'APRESENTATION');
+    // this.client.addOrRemoveLabels(['44'], [chatId])
+
+    const time = FindTimeSP();
+    const userData = this.userData[chatId];
+    const phone = chatId.replace(/\D/g, '');
+    const params = {
+      id_admin   :0,
+      phone      :phone,
+      typeVehicle:userData.vehicle,
+      name       :userData.name,
+      region     :'em branco',
+      measure    :'não tenho',
+      email      :userData.email,
+      tracker    :'não tenho',
+      label      :'',
+      create_at  :time
+    }
+    const lead = await this.leadService.findOnePhone(phone)
+    if(lead.status == 200){
+      await this.leadService.update(lead.result.id ,params);
+    }else{
+      await this.leadService.create(params);
+    }
+    await this.presentationApp(chatId);
+    delete this.userData[chatId];
+  };
+
+  private async presentationApp(chatId: string) {
+    const presentation = `🚀 *Acesso Antecipado – Mix Entregadores* 📦\n\n💡 Seja um dos primeiros a se cadastrar na plataforma que conecta entregadores a quem precisa de frete!\n\nEstamos liberando o cadastro antecipado para entregadores. Cadastre-se agora e seja um dos primeiros a receber solicitações de frete em São Paulo – Capital!\n\n⚡ *Vagas limitadas para a fase inicial!*`
+    await this.client.sendMessage(chatId, presentation);
+    await this.client.sendMessage(chatId, "1 - *Cadastrar* \n2 - *Voltar*");
+  };
+
+  private async instructionApp(chatId: string){
+    this.client.addOrRemoveLabels(['44'], [chatId]);
+    await this.updateTypeConversation(chatId, 'DECISION');
+    const instruction = `🤩 *PERFEITO* \n\n dentro de *48h* você recebera uma mensagem com o link e mais instruções do aplicativo!`
+    const defaultMessage = 'Sobre qual assunto você gostaria de conversar agora 👀?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* '
+    await this.client.sendMessage(chatId, instruction);
+    await this.client.sendMessage(chatId, defaultMessage);
+    await this.updateConversationApp(chatId, 'INITIAL_CONTACT');
+  };
+
+  private async verifyCadasterApp(message:Message){
+    const chatId = message.from;
+     if (usersCheks[chatId]?.isVerified) {
+       // console.log("Usuário já verificado, continuando o fluxo...");
+       return; // Não executa a verificação novamente
+     }
+ 
+    const number = chatId.replace('@c.us', '');
+    const lead = await this.leadService.findOnePhone(number)
+
+    if(lead.status == 200){
+     this.userData[chatId] = {
+       name: lead.result.name ,
+       vehicle: lead.result.typeVehicle, 
+       region: lead.result.region,
+       measure: lead.result.measure,
+       email: lead.result.email,
+       tracker: lead.result.tracker,
+     };
+     if(!lead.result.typeVehicle || !lead.result.email || !lead.result.name){
+       await this.handleIncomingMessage(message);
+     }else{
+       const confirmationMessage = `✍️ *Antes de apresentar o aplicativo*\n📋📦 *As suas informações continuam correta?* \n\n😁 *Nome:* ${lead.result.name}\n📧 *Email:* ${lead.result.email} \n🚚 *Veículo:* ${lead.result.typeVehicle}\n\n\n*Está tudo correto 👀?* \nResponda com "sim" ou "não"`;
+       setTimeout(() => {
+         this.updateConversationApp(chatId, 'CONFIRMATION');
+         this.client.sendMessage(chatId, confirmationMessage)
+       }, 10000)
+     }
+     usersCheks[chatId] = { isVerified: true}
+     setTimeout(() => {
+       // console.log(`Resetando estado do usuário ${chatId}`);
+       delete usersCheks[chatId];
+     // }, 60000); // 1 minuto de inatividade
+     }, 24 * 60 * 60 * 1000); // 24 horas em milissegundos
+     return
+    }
+    usersCheks[chatId] = { isVerified: true }
+    return await this.handleIncomingMessageApp(message);
+  };
+
+  private async awaitLinkApp(message:Message){
+    const chatId = message.from;
+    const link = `✅ *Registramos seu Cadastro!* ✍️ \n\nEm algumas horas 🕜 você recebera uma mensagem com o link e mais instruções do aplicativo!`
+    await this.client.sendMessage(chatId, link);
+  };
+
+  
+  
+
+  // ################ SERVICE ###################### \\
+
+  
 
   private async handleIncomingMessage(message: Message) {
     const chatId = message.from;
@@ -279,14 +669,6 @@ export class WhatsService {
     
     }
   };
-  
-  private async getConversationState(chatId: string): Promise<ConversationStepOne> {
-    return this.conversationState[chatId] || 'INITIAL_CONTACT';
-  };
-
-  private async updateConversationStateOne(chatId: string, step: ConversationStepOne) {
-    this.conversationState[chatId] = step;
-  };
 
   private async finalizeProcess(chatId: string) {
     await this.updateConversationStateTwo(chatId, 'PROPOSAL');
@@ -326,7 +708,7 @@ export class WhatsService {
 
   private async sendFirstContactResponse(chatId: string){
     try {
-      const presentation = `💁🏾‍♀️ *Olá, Seja bem vindo ao nosso atendimento!*\n *Eu sou a Mix a sua atendente!*  \n\n*Nós somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
+      const presentation = `💁🏾‍♀️ Antes de apresentar nossas operações, preciso te conhecer melhor`
       await this.client.sendMessage(chatId, presentation);
       await this.client.sendMessage(chatId, "🧡 Qual é o seu nome?");
     } catch (err) {
@@ -1687,6 +2069,18 @@ export class WhatsService {
       }
     });
   };
-  
+
+  // bomb 💣
+  async sendBomb(allLead:any){
+    for(const lead of allLead){
+      const chatId = `${lead.phone}@c.us`;
+      this.client.addOrRemoveLabels(['45'], [chatId])
+      console.log(chatId)
+      const message = '💣 *🤩 PARABÉNS! 💥*\n\n*Estamos enviando uma mensagem para todos os motoristas selecionados!*\n\nVocê foi selecionado para o acesso antecipado do aplicativo Mix Entregadores\n\n* \n\n Cadastre-se agora e tenha acesso ao nosso app exclusivo para motoristas e seja um dos primeiros a fazer entregas com a Mix na grande São Paulo-SP\n\n📎Link para download: https://play.google.com/store/apps/details?id=com.mixtrans.mixEntregadores*'
+      await this.client.sendMessage(chatId, message);
+      await new Promise(resolve => setTimeout(resolve, 4000));
+    };
+    await this.client.sendMessage('5511932291233@c.us', 'Bomba enviada com sucesso!')
+  };
   
 }

@@ -3,7 +3,7 @@ import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { UploadLeadDto } from './dto/upload-lead-dto';
 import { Lead } from './entities/lead.entity';
-import { Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 import findTimeSP from 'hooks/time';
 @Injectable()
 export class LeadService {
@@ -53,6 +53,37 @@ export class LeadService {
       message:'Lead does not exist'
     }
   };
+
+  async findAllByEmailValid() {
+    const lead = await this.leadRepository.find({
+      where: {
+        email: Raw((alias) => `
+          ${alias} REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$' 
+          AND ${alias} NOT LIKE '%. %' 
+          AND ${alias} NOT LIKE '% %' 
+          AND ${alias} NOT LIKE '%@%@%' 
+          AND ${alias} NOT LIKE '%@.%' 
+          AND ${alias} NOT LIKE '%.coml' 
+          AND ${alias} NOT LIKE '%.brl' 
+          AND LENGTH(${alias}) BETWEEN 6 AND 320
+        `),
+      },
+      // Removendo a propriedade 'distinct' que não existe em FindManyOptions<Lead>
+    });
+  
+    if (lead.length > 0) {
+      return {
+        status:200,
+        result:lead
+      };
+    }
+  
+    return {
+      status: 500,
+      message: 'Lead does not exist',
+    };
+  }
+  
 
   async findOnePhone(phone: string) {
     console.log(phone)
