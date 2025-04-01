@@ -217,7 +217,7 @@ export class WhatsService {
             //   break;
             default:
               await this.client.sendMessage(message.from, 'Não entendi 🤯, vamos tentar de novo, escolha um *número* para continuar!');
-              await this.client.sendMessage(message.from, '1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* ');
+              await this.client.sendMessage(message.from, '1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n ');
               await this.updateTypeConversation(message.from, 'DECISION');
               break;
           }
@@ -225,7 +225,7 @@ export class WhatsService {
         default:
           const presentation = `💁🏾‍♀️ *Olá, Seja bem vindo ao nosso atendimento!*\n *Eu sou a Mix a sua atendente!*  \n\n*Nós somos a Mix serv log | Entregas |*\nEntregamos Soluções Logísticas Eficientes\n🚚 +2 milhões Entregas feitas por todo Brasil\n👇 Conheça mais sobre nós\n*Site:* https://www.mixentregas.com.br/ \n*Instagram:* https://www.instagram.com/mixservlog/`
           await this.client.sendMessage(message.from, presentation);
-          const defaultMessage = 'Sobre qual assunto você gostaria de conversar?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* '
+          const defaultMessage = 'Sobre qual assunto você gostaria de conversar?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n '
           await this.client.sendMessage(message.from, defaultMessage);
           const atentionMessage = '❗ Digite um número para continuar';
           await this.client.sendMessage(message.from, atentionMessage);
@@ -410,7 +410,7 @@ export class WhatsService {
           case '2':
             const badMessage = 'Poxa que pena 😔, espero que tenha gostado da ideia!';
             await this.client.sendMessage(chatId, badMessage);
-            const defaultMessage = 'Sobre qual assunto você gostaria de conversar agora 👀?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* '
+            const defaultMessage = 'Sobre qual assunto você gostaria de conversar agora 👀?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n '
             await this.client.sendMessage(chatId, defaultMessage);
             await this.updateTypeConversation(chatId, 'DECISION');
             await this.updateConversationApp(chatId, 'INITIAL_CONTACT');
@@ -559,7 +559,7 @@ export class WhatsService {
     this.client.addOrRemoveLabels(['44'], [chatId]);
     await this.updateTypeConversation(chatId, 'DECISION');
     const instruction = `🤩 *PERFEITO* \n\n dentro de *48h* você recebera uma mensagem com o link e mais instruções do aplicativo!`
-    const defaultMessage = 'Sobre qual assunto você gostaria de conversar agora 👀?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n3 - 📝 (Empresas) *B2B* '
+    const defaultMessage = 'Sobre qual assunto você gostaria de conversar agora 👀?\n\n1 - 🚚 (Motoristas) *Operações*\n2 - 📱 (Motoristas) *APP* \n '
     await this.client.sendMessage(chatId, instruction);
     await this.client.sendMessage(chatId, defaultMessage);
     await this.updateConversationApp(chatId, 'INITIAL_CONTACT');
