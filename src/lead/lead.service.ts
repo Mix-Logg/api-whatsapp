@@ -58,7 +58,7 @@ export class LeadService {
     const lead = await this.leadRepository.find({
       where: {
         email: Raw((alias) => `
-          ${alias} REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$' 
+          ${alias} REGEXP '^[A-Za-z0-9._%+-]+@gmail\\.com$' 
           AND ${alias} NOT LIKE '%. %' 
           AND ${alias} NOT LIKE '% %' 
           AND ${alias} NOT LIKE '%@%@%' 
@@ -67,9 +67,12 @@ export class LeadService {
           AND ${alias} NOT LIKE '%.brl' 
           AND LENGTH(${alias}) BETWEEN 6 AND 320
         `),
+        phone: Raw((alias) => `
+          ${alias} REGEXP '^55(1[1-9]|2[12478]|3[1-8]|4[1-9]|5[1-5]|6[1-9]|7[1-9]|8[1-9]|9[1-9])9[0-9]{8}$'
+        `),
       },
-      // Removendo a propriedade 'distinct' que não existe em FindManyOptions<Lead>
     });
+    
   
     if (lead.length > 0) {
       return {

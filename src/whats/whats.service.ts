@@ -58,7 +58,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 2.8v');
+      console.log('Mix está pronta! 2.9v');
       // const allLead = await this.leadService.findAllByEmailValid();
       // console.log(allLead.result)
       // await this.sendBomb(allLead.result)
@@ -622,12 +622,8 @@ export class WhatsService {
     await this.client.sendMessage(chatId, link);
   };
 
-  
-  
-
   // ################ SERVICE ###################### \\
 
-  
 
   private async handleIncomingMessage(message: Message) {
     const chatId = message.from;
@@ -2087,7 +2083,7 @@ export class WhatsService {
       const chatId = `${lead.phone}@c.us`;
       this.client.addOrRemoveLabels(['45'], [chatId])
       console.log(chatId)
-      const message = '💣 *🤩 PARABÉNS! 💥*\n\n*Estamos enviando uma mensagem para todos os motoristas selecionados!*\n\nVocê foi selecionado para o acesso antecipado do aplicativo Mix Entregadores\n\n* \n\n Cadastre-se agora e tenha acesso ao nosso app exclusivo para motoristas e seja um dos primeiros a fazer entregas com a Mix na grande São Paulo-SP\n\n📎Link para download: https://play.google.com/store/apps/details?id=com.mixtrans.mixEntregadores*'
+      const message = '💣 *🤩 PARABÉNS! 💥*\n\n*Estamos enviando uma mensagem para todos os motoristas selecionados!*\n\nVocê foi selecionado para o acesso antecipado do aplicativo Mix Entregadores\n\n* \n\n Cadastre-se agora e tenha acesso ao nosso app exclusivo para motoristas e seja um dos primeiros a fazer entregas com a Mix na grande São Paulo-SP\n\n📎Link para download: https://play.google.com/store/apps/details?id=com.mixtrans.mixEntregadores'
       await this.client.sendMessage(chatId, message);
       await new Promise(resolve => setTimeout(resolve, 4000));
     };
