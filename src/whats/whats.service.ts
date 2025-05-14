@@ -24,13 +24,14 @@ export class WhatsService {
   ){
     this.api_key = process.env.KEY_IA;
     this.assistantId = process.env.KEY_MAX;
+    this.IA = new OpenAI({ apiKey: this.api_key });
   }
 
   onModuleInit() {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        // executablePath: '/snap/bin/chromium',
+        executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -57,7 +58,6 @@ export class WhatsService {
     this.client.on('ready', () => {
       this.call = true
       console.log('Max está pronto!');
-      console.log(this.assistantId)
       try{
         setInterval(this.verifyHour.bind(this), 25 * 1000);
       } catch (err) {
@@ -71,42 +71,42 @@ export class WhatsService {
 
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando! v1.5`);
+          await this.client.sendMessage(message.from, `Estou funcionando! v1.6`);
         } catch (err) {
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
         }
       };
       
-      if(message.from == '5511932291233@c.us' && message.body == 'start'){
-        try{ 
-          console.log('aqui')
-          const today = new Date().toLocaleDateString('pt-BR');
-          this.messageWorkConfirmation(today)
-          console.log(today)
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      // if(message.from == '5511932291233@c.us' && message.body == 'start'){
+      //   try{ 
+      //     console.log('aqui')
+      //     const today = new Date().toLocaleDateString('pt-BR');
+      //     this.messageWorkConfirmation(today)
+      //     console.log(today)
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
-      if(message.from == '5511932291233@c.us' && message.body == 'group'){
-        try{
-          this.messageWorkConfirmationList()
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      // if(message.from == '5511932291233@c.us' && message.body == 'group'){
+      //   try{
+      //     this.messageWorkConfirmationList()
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
-      if(message.from == '5511932291233@c.us' && message.body == 'presence'){
-        try{
-          this.messageWorkPresence()
-        } catch (err) {
-          console.error('Erro ao enviar a mensagem:', err);
-          process.exit(1)
-        }
-      };
+      // if(message.from == '5511932291233@c.us' && message.body == 'presence'){
+      //   try{
+      //     this.messageWorkPresence()
+      //   } catch (err) {
+      //     console.error('Erro ao enviar a mensagem:', err);
+      //     process.exit(1)
+      //   }
+      // };
 
       // if(message.from == '5511932291233@c.us' && message.body == 'group2'){
       //   try{
@@ -252,27 +252,27 @@ export class WhatsService {
   };
   
   async messageWorkConfirmation(today){
-    // const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
-    const oldDisponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
+    const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
+    // const oldDisponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
 
-    if (Array.isArray(oldDisponibility)) {
+    if (Array.isArray(disponibility)) {
       const idsDrivers = [];
       const idsAuxiliaries = [];
       const contacts = [
-        {
-          id: 41,
-          plate: 'Deus é fiel',
-          name: 'Gui', 
-          phone: `5511932291233`,
-          idGroup: null,
-          check: false,
-          thread: null,
-          go: false,
-          motion: '',
-        }
+        // {
+        //   id: 41,
+        //   plate: 'Deus é fiel',
+        //   name: 'Gui', 
+        //   phone: `5511932291233`,
+        //   idGroup: null,
+        //   check: false,
+        //   thread: null,
+        //   go: false,
+        //   motion: '',
+        // }
       ];
 
-      oldDisponibility.forEach(operation => {
+      disponibility.forEach(operation => {
         idsDrivers.push(operation.idDriver);         // Adiciona o idDriver ao array
         idsAuxiliaries.push(operation.idAuxiliary);  // Adiciona o idAuxiliary ao array
       });
@@ -280,12 +280,12 @@ export class WhatsService {
       for (const idDriver of idsDrivers) {
         const driverDetails = await this.driverService.findOne(idDriver);
         const vehicleDetails = await this.vehicleService.findOne(idDriver,'driver')
-        // contacts.push({
-        //   id: idDriver,
-        //   plate: vehicleDetails.plate,
-        //   name: driverDetails.name, 
-        //   phone: `55${driverDetails.phone}`, 
-        // });
+        contacts.push({
+          id: idDriver,
+          plate: vehicleDetails.plate,
+          name: driverDetails.name, 
+          phone: `55${driverDetails.phone}`, 
+        });
       };
 
       contacts.forEach( async (contact) => {
@@ -378,8 +378,8 @@ export class WhatsService {
     `Ordem: Gere uma lista de presença(chegada) a parti dessas informações (título: Fast-Shop Chegada ): ${jsonString} ATENÇÃO:essa lista é totalmente diferente da lista anterior, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     // console.log('Max:', chat)
-    // this.sendMessageToGroupWithNumber(`5511969945034`, chat) // PRODUCTION
-    this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
+    this.sendMessageToGroupWithNumber(`5511969945034`, chat) // PRODUCTION
+    // this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
   };
 
   async verifyGroup(message){
