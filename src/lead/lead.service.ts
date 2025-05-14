@@ -8,56 +8,57 @@ import findTimeSP from 'hooks/time';
 @Injectable()
 export class LeadService {
   constructor(
-    @Inject('LEAD_REPOSITORY') 
+    @Inject('LEAD_REPOSITORY')
     private leadRepository: Repository<Lead>,
-  ){}
+  ) {}
 
   async create(createLeadDto: CreateLeadDto) {
-    try{
+    try {
       await this.leadRepository.save(createLeadDto);
       return {
-        status:201,
-        result:'Successfully created lead'
-      }
-    }catch(e){
+        status: 201,
+        result: 'Successfully created lead',
+      };
+    } catch (e) {
       return {
-        status:501,
-        result:'Server error'
-      }
+        status: 501,
+        result: 'Server error',
+      };
     }
-  };
+  }
 
   async findAll() {
     const response = await this.leadRepository.find();
-    return response
-  };
+    return response;
+  }
 
   async findOne(id: number) {
-    const lead = await this.leadRepository.findOne({where:{id}});
-    if(lead != null){
-      return lead
+    const lead = await this.leadRepository.findOne({ where: { id } });
+    if (lead != null) {
+      return lead;
     }
     return {
-      status:500,
-      message:'Lead does not exist'
-    }
-  };
+      status: 500,
+      message: 'Lead does not exist',
+    };
+  }
 
   async findAllTypeVehicle(typeVehicle: string) {
-    const lead = await this.leadRepository.find({where:{typeVehicle}});
-    if(lead != null){
-      return lead
+    const lead = await this.leadRepository.find({ where: { typeVehicle } });
+    if (lead != null) {
+      return lead;
     }
     return {
-      status:500,
-      message:'Lead does not exist'
-    }
-  };
+      status: 500,
+      message: 'Lead does not exist',
+    };
+  }
 
   async findAllByEmailValid() {
     const lead = await this.leadRepository.find({
       where: {
-        email: Raw((alias) => `
+        email: Raw(
+          (alias) => `
           ${alias} REGEXP '^[A-Za-z0-9._%+-]+@gmail\\.com$' 
           AND ${alias} NOT LIKE '%. %' 
           AND ${alias} NOT LIKE '% %' 
@@ -66,66 +67,91 @@ export class LeadService {
           AND ${alias} NOT LIKE '%.coml' 
           AND ${alias} NOT LIKE '%.brl' 
           AND LENGTH(${alias}) BETWEEN 6 AND 320
-        `),
-        phone: Raw((alias) => `
+        `,
+        ),
+        phone: Raw(
+          (alias) => `
           ${alias} REGEXP '^55(1[1-9]|2[12478]|3[1-8]|4[1-9]|5[1-5]|6[1-9]|7[1-9]|8[1-9]|9[1-9])9[0-9]{8}$'
-        `),
+        `,
+        ),
       },
     });
-    
-  
+
     if (lead.length > 0) {
       return {
-        status:200,
-        result:lead
+        status: 200,
+        result: lead,
       };
     }
-  
+
     return {
       status: 500,
       message: 'Lead does not exist',
     };
   }
-  
+
+  async findAllByTypeVehicle() {
+    const lead = await this.leadRepository.find({
+      select: ['phone', 'typeVehicle'],
+      where: {
+        phone: Raw(
+          (alias) => `
+        ${alias} REGEXP '^55(1[1-9]|2[12478]|3[1-8]|4[1-9]|5[1-5]|6[1-9]|7[1-9]|8[1-9]|9[1-9])9[0-9]{8}$'
+      `,
+        ),
+        typeVehicle: Raw((alias) => `${alias} IN ('vuc', 'hr')`),
+      },
+    });
+    if (lead.length > 0) {
+      return {
+        status: 200,
+        result: lead,
+      };
+    }
+
+    return {
+      status: 500,
+      message: 'Lead does not exist',
+    };
+  }
 
   async findOnePhone(phone: string) {
-    console.log(phone)
-    const lead = await this.leadRepository.findOne({where:{phone}});
-    if(lead){
+    console.log(phone);
+    const lead = await this.leadRepository.findOne({ where: { phone } });
+    if (lead) {
       return {
-        status:200,
-        result:lead
-      }
+        status: 200,
+        result: lead,
+      };
     }
     return {
-      status:500,
-      message:'Lead does not exist'
-    }
-  };
+      status: 500,
+      message: 'Lead does not exist',
+    };
+  }
 
   async update(id: number, updateLeadDto: UpdateLeadDto) {
     const lead = await this.findOne(id);
-    if(lead.status == 500){
+    if (lead.status == 500) {
       return {
-        status:404,
-        message:'Lead does not exist'
-      }
+        status: 404,
+        message: 'Lead does not exist',
+      };
     }
     const res = await this.leadRepository.update(id, updateLeadDto);
-    if(res.affected){
+    if (res.affected) {
       return {
-        status:200,
-         message:'Lead updated successfully'
-      }
+        status: 200,
+        message: 'Lead updated successfully',
+      };
     }
     return {
-      status:500,
-      message:'Server error'
-    }
-
-  };
+      status: 500,
+      message: 'Server error',
+    };
+  }
 
   async remove(id: number) {
     return `This action removes a #${id} lead`;
-  };
+  }
 }
