@@ -23,15 +23,14 @@ export class WhatsService {
     private vehicleService: VehicleService
   ){
     this.api_key = process.env.KEY_IA;
-    this.assistantId = 'asst_VrXq89xMYw3OCJQgE5LafIa5';
-    this.IA =  new OpenAI({ apiKey: this.api_key });
+    this.assistantId = process.env.KEY_MAX;
   }
 
   onModuleInit() {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: '/snap/bin/chromium',
+        // executablePath: '/snap/bin/chromium',
         headless: true,  
         args: [
           '--no-sandbox',
@@ -57,7 +56,8 @@ export class WhatsService {
 
     this.client.on('ready', () => {
       this.call = true
-      console.log('Max está pronta!');
+      console.log('Max está pronto!');
+      console.log(this.assistantId)
       try{
         setInterval(this.verifyHour.bind(this), 25 * 1000);
       } catch (err) {
@@ -71,42 +71,42 @@ export class WhatsService {
 
       if(message.from == '5511932291233@c.us' && message.body == 'test'){
         try{
-          await this.client.sendMessage(message.from, `Estou funcionando! v1.4`);
+          await this.client.sendMessage(message.from, `Estou funcionando! v1.5`);
         } catch (err) {
           console.error('Erro ao enviar a mensagem:', err);
           process.exit(1)
         }
       };
       
-      // if(message.from == '5511932291233@c.us' && message.body == 'start'){
-      //   try{ 
-      //     console.log('aqui')
-      //     const today = new Date().toLocaleDateString('pt-BR');
-      //     this.messageWorkConfirmation(today)
-      //     console.log(today)
-      //   } catch (err) {
-      //     console.error('Erro ao enviar a mensagem:', err);
-      //     process.exit(1)
-      //   }
-      // };
+      if(message.from == '5511932291233@c.us' && message.body == 'start'){
+        try{ 
+          console.log('aqui')
+          const today = new Date().toLocaleDateString('pt-BR');
+          this.messageWorkConfirmation(today)
+          console.log(today)
+        } catch (err) {
+          console.error('Erro ao enviar a mensagem:', err);
+          process.exit(1)
+        }
+      };
 
-      // if(message.from == '5511932291233@c.us' && message.body == 'group'){
-      //   try{
-      //     this.messageWorkConfirmationList()
-      //   } catch (err) {
-      //     console.error('Erro ao enviar a mensagem:', err);
-      //     process.exit(1)
-      //   }
-      // };
+      if(message.from == '5511932291233@c.us' && message.body == 'group'){
+        try{
+          this.messageWorkConfirmationList()
+        } catch (err) {
+          console.error('Erro ao enviar a mensagem:', err);
+          process.exit(1)
+        }
+      };
 
-      // if(message.from == '5511932291233@c.us' && message.body == 'presence'){
-      //   try{
-      //     this.messageWorkPresence()
-      //   } catch (err) {
-      //     console.error('Erro ao enviar a mensagem:', err);
-      //     process.exit(1)
-      //   }
-      // };
+      if(message.from == '5511932291233@c.us' && message.body == 'presence'){
+        try{
+          this.messageWorkPresence()
+        } catch (err) {
+          console.error('Erro ao enviar a mensagem:', err);
+          process.exit(1)
+        }
+      };
 
       // if(message.from == '5511932291233@c.us' && message.body == 'group2'){
       //   try{
@@ -163,9 +163,9 @@ export class WhatsService {
         }else{
           this.driversWorkToday[index].motion = json.motion;
         }
-        if (hour === 5 && minutes >= 0 && minutes <= 15) {
-          this.messageWorkConfirmationList()
-        }
+        // if (hour === 5 && minutes >= 0 && minutes <= 15) {
+        //   this.messageWorkConfirmationList()
+        // }
       break
       case 'presence':
         if(json.presence){
@@ -174,9 +174,9 @@ export class WhatsService {
           this.driversWorkToday[index].presence = false;
           this.driversWorkToday[index].time = json.time;
         }
-        if (hour === 5 && minutes >= 30 && minutes <= 59) {
-          this.messageWorkPresenceList()
-        }
+        // if (hour === 5 && minutes >= 30 && minutes <= 59) {
+        //   this.messageWorkPresenceList()
+        // }
         break
       default:
         console.log('Tipo não reconhecido:', json);
@@ -252,27 +252,27 @@ export class WhatsService {
   };
   
   async messageWorkConfirmation(today){
-    const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
-    // const oldDisponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
+    // const disponibility = await this.operationTodayService.findAllOneDate(today, 'fast-shop'); //PRODUCTION
+    const oldDisponibility = await this.operationTodayService.findAllOneDate(`30/10/2024`, 'fast-shop'); //DEVELOPMENT
 
-    if (Array.isArray(disponibility)) {
+    if (Array.isArray(oldDisponibility)) {
       const idsDrivers = [];
       const idsAuxiliaries = [];
       const contacts = [
-        // {
-        //   id: 41,
-        //   plate: 'Deus é fiel',
-        //   name: 'Gui', 
-        //   phone: `5511932291233`,
-        //   idGroup: null,
-        //   check: false,
-        //   thread: null,
-        //   go: false,
-        //   motion: '',
-        // }
+        {
+          id: 41,
+          plate: 'Deus é fiel',
+          name: 'Gui', 
+          phone: `5511932291233`,
+          idGroup: null,
+          check: false,
+          thread: null,
+          go: false,
+          motion: '',
+        }
       ];
 
-      disponibility.forEach(operation => {
+      oldDisponibility.forEach(operation => {
         idsDrivers.push(operation.idDriver);         // Adiciona o idDriver ao array
         idsAuxiliaries.push(operation.idAuxiliary);  // Adiciona o idAuxiliary ao array
       });
@@ -280,12 +280,12 @@ export class WhatsService {
       for (const idDriver of idsDrivers) {
         const driverDetails = await this.driverService.findOne(idDriver);
         const vehicleDetails = await this.vehicleService.findOne(idDriver,'driver')
-        contacts.push({
-          id: idDriver,
-          plate: vehicleDetails.plate,
-          name: driverDetails.name, 
-          phone: `55${driverDetails.phone}`, 
-        });
+        // contacts.push({
+        //   id: idDriver,
+        //   plate: vehicleDetails.plate,
+        //   name: driverDetails.name, 
+        //   phone: `55${driverDetails.phone}`, 
+        // });
       };
 
       contacts.forEach( async (contact) => {
@@ -378,8 +378,8 @@ export class WhatsService {
     `Ordem: Gere uma lista de presença(chegada) a parti dessas informações (título: Fast-Shop Chegada ): ${jsonString} ATENÇÃO:essa lista é totalmente diferente da lista anterior, Lembrando se caso você já enviou atualize o mesmo` ,
     null)
     // console.log('Max:', chat)
-    this.sendMessageToGroupWithNumber(`5511969945034`, chat)// PRODUCTION
-    // this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
+    // this.sendMessageToGroupWithNumber(`5511969945034`, chat) // PRODUCTION
+    this.sendMessageToGroupWithNumber(`5511915096486`, chat)   // DEVELOPMENT
   };
 
   async verifyGroup(message){
@@ -411,7 +411,7 @@ export class WhatsService {
     const today = `${day}/${month}/${year}`
 
     // if(hour === 13 && minutes ===  30 && this.call) {
-    if(hour === 0 && minutes === 0  && this.call) {
+    if(hour === 2 && minutes === 0  && this.call) {
       this.call = false;
       // console.log('Deu o horario de confirma para acordar')
       this.messageWorkConfirmation(today);
@@ -438,12 +438,12 @@ export class WhatsService {
 
 
     // if(hour ===  13 && minutes === 36 && !this.call ) {
-    if( hour === 5 && minutes === 30 && !this.call){
-      this.call = true;
-      // console.log('Deu o horario de envio da Lista de presença')
-      this.messageWorkPresenceList()
-      return
-    }
+    // if( hour === 5 && minutes === 30 && !this.call){
+    //   this.call = true;
+    //   // console.log('Deu o horario de envio da Lista de presença')
+    //   this.messageWorkPresenceList()
+    //   return
+    // }
     
     
     if(hour === 7 && minutes === 1 ){
