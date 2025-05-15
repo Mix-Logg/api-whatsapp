@@ -58,7 +58,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 3.0v');
+      console.log('Mix está pronta! 3.1v');
       // const allLead = await this.leadService.findAllByEmailValid();
       // console.log(allLead.result)
       // await this.sendBomb(allLead.result)
@@ -72,9 +72,9 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 3.0v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 3.1v')
         }
-        if(message.body == 'unread'){
+        if(message.body.toLocaleLowerCase() == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
           this.client.sendMessage(message.from, 'Enviando mensagem para não lidos!')
         }
@@ -342,17 +342,19 @@ export class WhatsService {
     }
   };
 
-  async resolvingUnreadMessage(){
-    const chats = await this.client.getChats();
-    const unreadChats = chats.filter(chat => chat.unreadCount > 0);
-    const messageSorry = await this.generateOfferMessage('Se desculpe pela demora, e pergunte se está disposto a continuar o atendimento (mensagem curta)');
-    if (unreadChats.length > 0) {
-      unreadChats.forEach(async chat => {
-        await this.client.sendMessage(chat.id._serialized, messageSorry);
-      });
-      await new Promise(resolve => setTimeout(resolve, 10000));
-    } 
-  };
+  async resolvingUnreadMessage() {
+  const chats = await this.client.getChats();
+  const unreadChats = chats.filter(chat => chat.unreadCount > 0);
+  const messageSorry = await this.generateOfferMessage('Se desculpe pela demora, e pergunte se está disposto a continuar o atendimento (mensagem curta)');
+
+  if (unreadChats.length > 0) {
+    for (const chat of unreadChats) {
+      await this.client.sendMessage(chat.id._serialized, messageSorry);
+      await new Promise(resolve => setTimeout(resolve, 7000)); // espera 1 segundo entre envios (ajuste como quiser)
+    }
+  }
+}
+
 
   private typeConversation: { [chatId: string]: SelectConversation } = {};
   private ConversationCompany: { [chatId: string]: ConversationCompany } = {};
