@@ -116,9 +116,9 @@ export class WhatsService {
       // }
 
       // LOCK 🔒
-      if(message.id.remote !== '5511932291233@c.us'){
-        return
-      }
+      // if(message.id.remote !== '5511932291233@c.us'){
+      //   return
+      // }
 
       // ############## LABEL ############## \\
       const haveLabel = await this.client.getChatLabels(message.from);
