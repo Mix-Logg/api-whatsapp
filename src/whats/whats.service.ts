@@ -355,7 +355,6 @@ export class WhatsService {
   }
 }
 
-
   private typeConversation: { [chatId: string]: SelectConversation } = {};
   private ConversationCompany: { [chatId: string]: ConversationCompany } = {};
   private ConversationApp: { [chatId: string]: ConversationAPP } = {};
