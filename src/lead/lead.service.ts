@@ -99,7 +99,7 @@ export class LeadService {
         ${alias} REGEXP '^55(1[1-9]|2[12478]|3[1-8]|4[1-9]|5[1-5]|6[1-9]|7[1-9]|8[1-9]|9[1-9])9[0-9]{8}$'
       `,
         ),
-        typeVehicle: Raw((alias) => `${alias} IN ('vuc', 'hr', 'fiorino')`),
+        typeVehicle: Raw((alias) => `${alias} IN ('vuc', 'hr')`),
       },
     });
     if (lead.length > 0) {
