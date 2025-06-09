@@ -58,7 +58,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 3.1v');
+      console.log('Mix está pronta! 3.2v');
       // const allLead = await this.leadService.findAllByEmailValid();
       // console.log(allLead.result)
       // await this.sendBomb(allLead.result)
@@ -72,7 +72,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 3.1v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 3.2v')
         }
         if(message.body.toLocaleLowerCase() == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -2094,11 +2094,12 @@ export class WhatsService {
 
   // bomb 💣
   async sendBomb(allLead:any){
+    await this.client.sendMessage('5511932291233@c.us', 'Inicio de envio!\n para:', allLead.length)
     for(const lead of allLead){
       const chatId = `${lead.phone}@c.us`;
       // this.client.addOrRemoveLabels(['45'], [chatId])
       // console.log(chatId)
-      const message = '🎉 *BOA NOTÍCIA CHEGANDO!* 🚚✨\n\n🔔 *PARABÉNS!* Você foi *selecionado* para uma *operação especial*! 💼🔥\nEstamos entrando em contato apenas com motoristas escolhidos a dedo\n\n\n As *vagas* são *limitadas* e queremos saber:\nComo está sua disponibilidade e seu momento atual? preparado para ganhar dinheiro? 💰\n👉 Responda está mensagem e conheça as operações \n\n📢 *Oferta especial para VUC e HR!*';
+      const message = '🎉 *BOA NOTÍCIA CHEGANDO!* 🚚✨\n\n🔔 *PARABÉNS!* Você foi *selecionado* para uma *operação especial*! 💼🔥\nEstamos entrando em contato apenas com motoristas escolhidos a dedo\n\n\n As *vagas* são *limitadas* e queremos saber:\nComo está sua disponibilidade e seu momento atual? preparado para ganhar dinheiro? 💰\n👉 Responda está mensagem e conheça as operações \n\n📢 *Oferta especial para VUC, HR e FIORINO!*';
       await this.client.sendMessage(chatId, message);
       await new Promise(resolve => setTimeout(resolve, 4000));
     };
