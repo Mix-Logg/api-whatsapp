@@ -2099,7 +2099,7 @@ export class WhatsService {
       const chatId = `${lead.phone}@c.us`;
       // this.client.addOrRemoveLabels(['45'], [chatId])
       // console.log(chatId)
-      const message = '🎉 *BOA NOTÍCIA CHEGANDO!* 🚚✨\n\n🔔 *PARABÉNS!* Você foi *selecionado* para uma *operação especial*! 💼🔥\nEstamos entrando em contato apenas com motoristas escolhidos a dedo\n\n\n As *vagas* são *limitadas* e queremos saber:\nComo está sua disponibilidade e seu momento atual? preparado para ganhar dinheiro? 💰\n👉 Responda está mensagem e conheça as operações \n\n📢 *Oferta especial para VUC, HR e FIORINO!*';
+      const message = '🎉 *BOA NOTÍCIA CHEGANDO!* 🚚✨\n\n🔔 *PARABÉNS!* Você foi *selecionado* para uma *operação especial*! 💼🔥\nEstamos entrando em contato apenas com motoristas escolhidos a dedo\n\n\n As *vagas* são *limitadas* e queremos saber:\nComo está sua disponibilidade e seu momento atual? preparado para ganhar dinheiro? 💰\n👉 Responda está mensagem e conheça as operações \n\n📢 *Oferta especial para VUC, HR !*';
       await this.client.sendMessage(chatId, message);
       await new Promise(resolve => setTimeout(resolve, 4000));
     };
