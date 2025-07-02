@@ -58,7 +58,7 @@ export class WhatsService {
     });
 
     this.client.on('ready', async () => {
-      console.log('Mix está pronta! 3.2v');
+      console.log('Mix está pronta! 3.3v');
       // const allLead = await this.leadService.findAllByEmailValid();
       // console.log(allLead.result)
       // await this.sendBomb(allLead.result)
@@ -72,7 +72,7 @@ export class WhatsService {
         // this.sendProposal(message)
         // return
         if(message.body.toLocaleLowerCase() == 'test'){
-          this.client.sendMessage(message.from, 'Estou funcionando! 3.2v')
+          this.client.sendMessage(message.from, 'Estou funcionando! 3.3v')
         }
         if(message.body.toLocaleLowerCase() == 'unread'){
           this.resolvingUnreadMessage(); // Mensagem para os não lidos
@@ -993,12 +993,12 @@ export class WhatsService {
             media = MessageMedia.fromFilePath(imagePath);
             
             // Audio da Apresentação
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            // audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            // mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
             
             // Audio das Perguntas
-            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            // audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            // mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
             
             // Envio de imagem
             await this.client.sendMessage(chatId, media);
@@ -1088,9 +1088,9 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
 
             // Audio Apresentação
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-            await this.client.sendMessage(chatId, mediaApresentation);
+            // audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            // mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            // await this.client.sendMessage(chatId, mediaApresentation);
  
             // Mensagem de Tabela de Ganhos
             sendMessage = `*🚛 Tabela de Ganhos – Operação HR e Similares 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
@@ -1102,8 +1102,8 @@ export class WhatsService {
             await this.client.sendMessage(chatId, media);
  
             // Mensagem de Média de Faturamento
-            sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.000,00\n2ª Faixa 5 Fretes mês= R$ 3.250,00\n3ª Faixa 5 Fretes mês= R$ 3.500,00\n4ª Faixa 5 Fretes mês= R$ 4.000,00\n5ª Faixa 5 Fretes mês= R$ 4.750,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
-            await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.000,00\n2ª Faixa 5 Fretes mês= R$ 3.250,00\n3ª Faixa 5 Fretes mês= R$ 3.500,00\n4ª Faixa 5 Fretes mês= R$ 4.000,00\n5ª Faixa 5 Fretes mês= R$ 4.750,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
+            // await this.client.sendMessage(chatId, sendMessage);
  
              
              
@@ -1116,9 +1116,9 @@ export class WhatsService {
             // await this.client.sendMessage(chatId, sendMessage);
              
             // Audio Duvidas
-            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-            await this.client.sendMessage(chatId, mediaQuestion);
+            // audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            // mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            // await this.client.sendMessage(chatId, mediaQuestion);
 
             // Mensagem de Ação
             sendMessage = `*3-* aceitar \n*1-* voltar as operações\n\n\n*0-* Falar com suporte`
@@ -1175,9 +1175,9 @@ export class WhatsService {
             await this.client.sendMessage(chatId, sendMessage);
 
             // Audio Apresentação
-            audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
-            mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
-            await this.client.sendMessage(chatId, mediaApresentation);
+            // audioApresentationPath = `table/fastshop/cajamar-audio/apresentação.ogg`
+            // mediaApresentation = MessageMedia.fromFilePath(audioApresentationPath);
+            // await this.client.sendMessage(chatId, mediaApresentation);
 
             // Mensagem de Tabela de Ganhos
             sendMessage = `*🚛 Tabela de Ganhos – Operação VUC 2025*\n\n*💰 Quanto você pode ganhar?*\n🔹 Seu pagamento é baseado na quilometragem rodada e se o veículo possui rastreador. Com rastreador, você recebe mais!\n🔹 A tabela contempla KM IDA E VOLTA, porém não precisa retornar para o CD, mesmo que tenha devoluções, as devoluções serão realizadas no dia seguinte.\n\n📊 Confira os valores por faixa de KM rodado:`
@@ -1189,8 +1189,8 @@ export class WhatsService {
             await this.client.sendMessage(chatId, media);
 
             // Mensagem de Média de Faturamento
-            sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.500,00\n2ª Faixa 5 Fretes mês= R$ 3.500,00\n3ª Faixa 5 Fretes mês= R$ 3.750,00\n4ª Faixa 5 Fretes mês= R$ 4.500,00\n5ª Faixa 5 Fretes mês= R$ 5.000,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
-            await this.client.sendMessage(chatId, sendMessage);
+            // sendMessage = `*🔹 Valor do frete já está incluso o Ajudante!*\n°📢 Média de Faturamento Exemplo:\n\n1ª Faixa 10 Fretes mês= R$ 6.500,00\n2ª Faixa 5 Fretes mês= R$ 3.500,00\n3ª Faixa 5 Fretes mês= R$ 3.750,00\n4ª Faixa 5 Fretes mês= R$ 4.500,00\n5ª Faixa 5 Fretes mês= R$ 5.000,00\n\n📢 Bônus por volume:\n🔹 + R$10,00 por entrega acima de 14!\n\n🚀 Quanto mais você roda, mais ganha! Entre em contato e garanta sua vaga agora!`
+            // await this.client.sendMessage(chatId, sendMessage);
 
             
             
@@ -1205,9 +1205,9 @@ export class WhatsService {
             
            
             // Audio Duvidas
-            audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
-            mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
-            await this.client.sendMessage(chatId, mediaQuestion);
+            // audioQuestionPath = `table/fastshop/cajamar-audio/duvidas.ogg`
+            // mediaQuestion     = MessageMedia.fromFilePath(audioQuestionPath);
+            // await this.client.sendMessage(chatId, mediaQuestion);
 
             // Mensagem de Ação
             sendMessage = `*2-* aceitar \n*1-* voltar as operações\n\n*0-* Falar com suporte`
@@ -2099,7 +2099,7 @@ export class WhatsService {
       const chatId = `${lead.phone}@c.us`;
       // this.client.addOrRemoveLabels(['45'], [chatId])
       // console.log(chatId)
-      const message = '🎉 *BOA NOTÍCIA CHEGANDO!* 🚚✨\n\n🔔 *PARABÉNS!* Você foi *selecionado* para uma *operação especial*! 💼🔥\nEstamos entrando em contato apenas com motoristas escolhidos a dedo\n\n\n As *vagas* são *limitadas* e queremos saber:\nComo está sua disponibilidade e seu momento atual? preparado para ganhar dinheiro? 💰\n👉 Responda está mensagem e conheça as operações \n\n📢 *Oferta especial para VUC, HR !*';
+      const message = '🎉 *BOA NOTÍCIA CHEGANDO!* 🚚✨\n\n🔔 *PARABÉNS!* Você foi *selecionado* para uma *operação especial*! 💼🔥\nEstamos entrando em contato apenas com motoristas escolhidos a dedo\n\n\n As *vagas* são *limitadas* e queremos saber:\nComo está sua disponibilidade e seu momento atual? preparado para ganhar dinheiro? 💰\n👉 Responda está mensagem e conheça as operações \n\n📢 *Oferta especial para VUC, HR e FIORINO!*';
       await this.client.sendMessage(chatId, message);
       await new Promise(resolve => setTimeout(resolve, 4000));
     };
